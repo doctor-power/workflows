@@ -76,7 +76,7 @@ jobs:
 
       - name: Create Jira issue
         id: create
-        uses: doctor-power/gajira-create@v1.1.16
+        uses: doctor-power/gajira-create@main
         with:
           project: ${{ inputs.project }}
           issuetype: ${{ inputs.issue_type }}
