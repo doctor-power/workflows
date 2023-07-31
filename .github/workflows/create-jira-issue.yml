@@ -21,6 +21,10 @@ on:
         required: false
         default: security, dependabot
         type: string
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: read
     secrets:
       JIRA_BASE_URL:
         required: true
