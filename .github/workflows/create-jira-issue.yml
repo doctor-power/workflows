@@ -21,10 +21,6 @@ on:
         required: false
         default: security, dependabot
         type: string
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: read
     secrets:
       JIRA_BASE_URL:
         required: true
@@ -39,6 +35,10 @@ jobs:
   create_jira_issue_for_dependabot_pr:
     if: github.actor != 'dependabot[bot]' # TODO: Change to == after initial testing
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
