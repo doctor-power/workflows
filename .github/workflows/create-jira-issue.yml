@@ -35,10 +35,6 @@ jobs:
   create_jira_issue_for_dependabot_pr:
     if: github.actor != 'dependabot[bot]' # TODO: Change to == after initial testing
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
