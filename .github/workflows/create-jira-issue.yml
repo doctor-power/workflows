@@ -84,7 +84,7 @@ jobs:
         uses: doctor-power/gajira-create@v1.1.16
         with:
           project: ${{ inputs.project }}
-          issuetype: ${{ inputs.issue_type }
+          issuetype: ${{ inputs.issue_type }}
           summary: ${{ github.event.pull_request.title }}
           body: ${{ github.event.pull_request.body }}
           prlink: ${{ github.event.pull_request._links.html.href }}
