@@ -1,0 +1,34 @@
+name: Update Jira Issue
+
+on:
+  workflow_call:
+    secrets:
+      JIRA_BASE_URL:
+        required: true
+      JIRA_USER_EMAIL:
+        required: true
+      JIRA_API_TOKEN:
+        required: true
+
+jobs:
+  transition_dependabot_issue_to_done_on_pr_merge:
+    if: github.actor != 'dependabot[bot]' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to Jira
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+      - name: Extract issue key from pull request title
+        id: extract_issue_key
+        run: |
+          echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Transition Jira ticket to Done
+        uses: atlassian/gajira-transition@v3
+        with:
+          issue: ${{ steps.extract_issue_key.outputs.issue_key }}
+          transition: Done
