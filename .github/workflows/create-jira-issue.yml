@@ -31,11 +31,6 @@ on:
       READ_ONLY_ORG_TEAM_MEMBERS:
         required: true
 
-permissions:
-  contents: write
-  pull-requests: write
-  repository-projects: read
-
 jobs:
   create_jira_issue_for_dependabot_pr:
     if: github.actor != 'dependabot[bot]' # TODO: Change to == after initial testing
