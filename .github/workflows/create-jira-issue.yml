@@ -1,0 +1,103 @@
+name: Create Jira Issue
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        description: The key of the Jira project to create the issue in
+        required: true
+        type: string
+      github_team:
+        description: The name of the GitHub Org team to assign the issue to
+        required: true
+        type: string
+      issue_type:
+        description: The type of issue to create
+        required: false
+        default: Task
+        type: string
+      labels:
+        description: Comma-separated list of labels to apply to the issue
+        required: false
+        default: security, dependabot
+        type: string
+    secrets:
+      JIRA_BASE_URL:
+        required: true
+      JIRA_USER_EMAIL:
+        required: true
+      JIRA_API_TOKEN:
+        required: true
+      READ_ONLY_ORG_TEAM_MEMBERS:
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  repository-projects: read
+
+jobs:
+  create_jira_issue_for_dependabot_pr:
+    if: github.actor != 'dependabot[bot]' # TODO: Change to == after initial testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Fetch all history so that we can get the release branch names
+
+      - name: Get release branch names
+        id: get_release_branch_names
+        run: |
+          all_branches=$(git branch -r --format='%(refname:short)')
+          release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
+          echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
+
+      - name: Assign PR to GH team member # Assign PR to a random member of the specified GitHub Org team
+        uses: dc-ag/auto-assign-assignees-from-team@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          read-token: ${{ secrets.READ_ONLY_ORG_TEAM_MEMBERS }} # Read only token which needs access to fetch team members
+          team: ${{ inputs.github_team }}
+          amount: 1 # Amount of assignees to assign
+
+      - name: Get PR assignee # To be used to assign Jira issue to the same person
+        id: get_assignee
+        run: |
+          assignee_object=$(gh pr view ${{ github.event.pull_request.number }} --json assignees --jq '.assignees[0]')
+          assignee_fullname=$(echo "$assignee_object" | jq -r '.name')
+          assignee_firstname=$(echo "$assignee_fullname" | cut -d ' ' -f1)
+          echo "assignee=$assignee_firstname" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Jira
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+      - name: Create Jira issue
+        id: create
+        uses: doctor-power/gajira-create@v1.1.16
+        with:
+          project: ${{ inputs.project }}
+          issuetype: ${{ inputs.issue_type }
+          summary: ${{ github.event.pull_request.title }}
+          body: ${{ github.event.pull_request.body }}
+          prlink: ${{ github.event.pull_request._links.html.href }}
+          labels: ${{ inputs.labels }}
+          assignee: ${{ steps.get_assignee.outputs.assignee }}
+          releaseBranches: ${{ steps.get_release_branch_names.outputs.release_branches }}
+
+      - name: Log created issue
+        run: echo "Issue ${{ steps.create.outputs.issue }} was created"
+
+      - name: Rename pull request to include Jira issue number
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --title "${{ steps.create.outputs.issue }}: ${{ github.event.pull_request.title }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
