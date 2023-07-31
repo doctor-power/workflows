@@ -83,6 +83,7 @@ jobs:
           summary: ${{ github.event.pull_request.title }}
           body: ${{ github.event.pull_request.body }}
           prlink: ${{ github.event.pull_request._links.html.href }}
+          isSec: true
           labels: ${{ inputs.labels }}
           assignee: ${{ steps.get_assignee.outputs.assignee }}
           releaseBranches: ${{ steps.get_release_branch_names.outputs.release_branches }}
