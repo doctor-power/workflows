@@ -63,7 +63,8 @@ jobs:
           assignee_object=$(gh pr view ${{ github.event.pull_request.number }} --json assignees --jq '.assignees[0]')
           assignee_fullname=$(echo "$assignee_object" | jq -r '.name')
           assignee_firstname=$(echo "$assignee_fullname" | cut -d ' ' -f1)
-          echo "assignee=$assignee_firstname" >> $GITHUB_OUTPUT
+          assignee_username=$(echo "$assignee_object" | jq -r '.login')
+          echo "assignee=$assignee_username" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -87,6 +88,10 @@ jobs:
           labels: ${{ inputs.labels }}
           assignee: ${{ steps.get_assignee.outputs.assignee }}
           releaseBranches: ${{ steps.get_release_branch_names.outputs.release_branches }}
+          githubJiraUserMap: ${{ vars.GH_JIRA_USER_MAP }}
+
+      - name: Echo githubJiraUserMap
+        run: echo "${{ vars.GH_JIRA_USER_MAP }}"
 
       - name: Log created issue
         run: echo "Issue ${{ steps.create.outputs.issue }} was created"
