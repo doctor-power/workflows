@@ -80,7 +80,7 @@ jobs:
 
       - name: Create Jira issue
         id: create
-        uses: dr-power/gajira-create@v1.0.0
+        uses: doctor-power/gajira-create@v1.0.0
         with:
           project: ${{ inputs.project }}
           issuetype: ${{ inputs.issue_type }}
@@ -112,6 +112,6 @@ jobs:
       - name: Add Jira issue link as comment on PR
         run: |
           gh pr comment ${{ github.event.pull_request.number }} \
-            --body "Associated Jira issue: https://dr-power.atlassian.net/browse/${{ steps.create.outputs.issue }}"
+            --body "Associated Jira issue: https://drpower.atlassian.net/browse/${{ steps.create.outputs.issue }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
