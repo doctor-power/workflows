@@ -33,7 +33,9 @@ on:
 
 jobs:
   create_jira_issue_for_dependabot_pr:
-    if: github.actor != 'dependabot[bot]' # TODO: Change to == after initial testing
+    if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+      (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+      (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -100,5 +102,12 @@ jobs:
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.create.outputs.issue }}: ${{ github.event.pull_request.title }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Jira issue link as comment on PR
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "Associated Jira issue: https://dr-power.atlassian.net/browse/${{ steps.create.outputs.issue }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
