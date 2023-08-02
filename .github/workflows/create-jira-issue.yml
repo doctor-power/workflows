@@ -80,7 +80,7 @@ jobs:
 
       - name: Create Jira issue
         id: create
-        uses: macuject/gajira-create@v1.0.0
+        uses: dr-power/gajira-create@v1.0.0
         with:
           project: ${{ inputs.project }}
           issuetype: ${{ inputs.issue_type }}
