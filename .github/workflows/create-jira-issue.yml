@@ -37,8 +37,8 @@ jobs:
     steps:
       - name: Skip # Run this rather than just skipping the whole job, so that we see a green tick in the PR checks
         if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
-          !(github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
-          !(github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
+          !((github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+            (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr'))
         id: skip
         run: echo "Job skipped"
 
