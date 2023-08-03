@@ -33,18 +33,27 @@ on:
 
 jobs:
   create_jira_issue_for_dependabot_pr:
-    if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
-      (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
-      (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
     runs-on: ubuntu-latest
     steps:
+      - name: Skip # Run this rather than just skipping the whole job, so that we see a green tick in the PR checks
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          !(github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          !(github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
+        run: echo "Job skipped"
+
       - name: Checkout code
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # Fetch all history so that we can get the release branch names
 
       - name: Get release branch names
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         id: get_release_branch_names
         run: |
           all_branches=$(git branch -r --format='%(refname:short)')
@@ -55,6 +64,9 @@ jobs:
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
       - name: Assign PR to GH team member # Assign PR to a random member of the specified GitHub Org team
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         uses: dc-ag/auto-assign-assignees-from-team@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,6 +75,9 @@ jobs:
           amount: 1 # Amount of assignees to assign
 
       - name: Get PR assignee # To be used to assign Jira issue to the same person
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         id: get_assignee
         run: |
           assignee_object=$(gh pr view ${{ github.event.pull_request.number }} --json assignees --jq '.assignees[0]')
@@ -72,6 +87,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to Jira
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         uses: atlassian/gajira-login@v3
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
@@ -79,6 +97,9 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
 
       - name: Create Jira issue
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         id: create
         uses: doctor-power/gajira-create@v1.0.0
         with:
@@ -97,12 +118,18 @@ jobs:
         uses: atlassian/gajira-transition@v3
         with:
           issue: ${{ steps.create.outputs.issue }}
-          transition: In Review
+          transition: Done
 
       - name: Log created issue
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         run: echo "Issue ${{ steps.create.outputs.issue }} was created"
 
       - name: Rename pull request to include Jira issue number
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.create.outputs.issue }}: ${{ github.event.pull_request.title }}"
@@ -110,8 +137,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add Jira issue link as comment on PR
+        if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
+          (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
+          (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr')
         run: |
           gh pr comment ${{ github.event.pull_request.number }} \
-            --body "Associated Jira issue: https://drpower.atlassian.net/browse/${{ steps.create.outputs.issue }}"
+            --body "Associated Jira issue: https://doctor-power.atlassian.net/browse/${{ steps.create.outputs.issue }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
