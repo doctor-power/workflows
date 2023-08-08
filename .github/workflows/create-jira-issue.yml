@@ -1,4 +1,4 @@
-name: Create Jira Issue
+name: Jira
 
 on:
   workflow_call:
@@ -32,15 +32,15 @@ on:
         required: true
 
 jobs:
-  create_jira_issue_for_dependabot_pr:
+  Create: # Create a new Jira issue when a PR is opened by dependabot, or when a PR is labeled with 'process-existing-pr'
     runs-on: ubuntu-latest
     steps:
-      - name: Skip # Run this rather than just skipping the whole job, so that we see a green tick in the PR checks
+      - name: Skip remaining steps # Run this rather than just skipping the whole job, so that we see a green tick in the PR checks
         if: >- # Specificity is important here to avoid triggering this action multiple times when Dependabot creates then labels a PR
           !((github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'opened') ||
             (github.actor != 'dependabot[bot]' && github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'process-existing-pr'))
         id: skip
-        run: echo "Job skipped"
+        run: echo "Run not needed for this PR, skipping remaining steps"
 
       - name: Checkout code
         if: steps.skip.outcome == 'skipped'

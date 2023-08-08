@@ -12,7 +12,7 @@ on:
 
 jobs:
   transition_dependabot_issue_to_done_on_pr_merge:
-    if: github.actor != 'dependabot[bot]' && github.event.pull_request.merged == true
+    # if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.merged == true # Dependabot is the author & PR is merged
     runs-on: ubuntu-latest
     steps:
       - name: Log in to Jira
@@ -26,6 +26,19 @@ jobs:
         id: extract_issue_key
         run: |
           echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+
+      # START: run a script
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Run script
+        run: node .github/workflows/simple-task.js
+      # END: run a script
 
       - name: Transition Jira ticket to Done
         uses: atlassian/gajira-transition@v3
