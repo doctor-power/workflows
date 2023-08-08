@@ -35,41 +35,41 @@ jobs:
           echo "issue_key=$issue_key"
           echo "project_key=$project_key"
 
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0 # Fetch all history so that we can get the release branch names
+      # - name: Checkout code
+      #   uses: actions/checkout@v3
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     fetch-depth: 0 # Fetch all history so that we can get the release branch names
 
-      - name: Get release branch names
-        id: get_release_branch_names
-        run: |
-          all_branches=$(git branch -r --format='%(refname:short)')
-          release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
-          echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
+      # - name: Get release branch names
+      #   id: get_release_branch_names
+      #   run: |
+      #     all_branches=$(git branch -r --format='%(refname:short)')
+      #     release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
+      #     echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
 
-      - name: Log release branch names
-        run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
+      # - name: Log release branch names
+      #   run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
-      # START: run a script
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
+      # # START: run a script
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 18
 
-      - name: Install dependencies
-        run: npm install
+      # - name: Install dependencies
+      #   run: npm install
 
-      - name: Run script
-        run: node .github/workflows/index.js
-        env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          ISSUE_KEY: ${{ steps.extract_keys.outputs.issue_key }}
-          PROJECT_KEY: ${{ steps.extract_keys.outputs.project_key }}
-          GITHUB_RELEASE_BRANCHES: ${{ steps.get_release_branch_names.outputs.release_branches }}
-      # END: run a script
+      # - name: Run script
+      #   run: node .github/workflows/index.js
+      #   env:
+      #     JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+      #     JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+      #     JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      #     ISSUE_KEY: ${{ steps.extract_keys.outputs.issue_key }}
+      #     PROJECT_KEY: ${{ steps.extract_keys.outputs.project_key }}
+      #     GITHUB_RELEASE_BRANCHES: ${{ steps.get_release_branch_names.outputs.release_branches }}
+      # # END: run a script
 
       - name: Transition Jira ticket to Done
         uses: atlassian/gajira-transition@v3
