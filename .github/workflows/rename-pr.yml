@@ -25,13 +25,13 @@ jobs:
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           echo "Branch name: $BRANCH_NAME"
           echo "Issue key regex: $ISSUE_KEY_REGEX"
-          echo "Regex comparison: $BRANCH_NAME =~ $ISSUE_KEY_REGEX"
-          echo "Regex comparison: [[$BRANCH_NAME =~ $ISSUE_KEY_REGEX]]"
+          echo "Regex comparison: ${$BRANCH_NAME =~ $ISSUE_KEY_REGEX}"
+          echo "Regex comparison: ${[[$BRANCH_NAME =~ $ISSUE_KEY_REGEX]]}"
           if [[ $BRANCH_NAME =~ $ISSUE_KEY_REGEX ]]; then
             echo "jira_issue_key=${BASH_REMATCH[0]}" >> $GITHUB_OUTPUT
           else
             echo "No Jira issue key found in branch name."
-            # exit 1 #TODO: Do we want a red fail here? Or just skip the rest of the steps?
+            exit 1 #TODO: Do we want a red fail here? Or just skip the rest of the steps?
           fi
 
       - name: Echo status of get_jira_issue_key
