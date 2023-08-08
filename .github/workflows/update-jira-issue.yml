@@ -11,8 +11,8 @@ on:
         required: true
 
 jobs:
-  transition_dependabot_issue_to_done_on_pr_merge:
-    # if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.merged == true # Dependabot is the author & PR is merged
+  update_dependabot_issue_on_pr_merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.merged == true # Dependabot is the author & PR is merged
     runs-on: ubuntu-latest
     steps:
       - name: Log in to Jira
