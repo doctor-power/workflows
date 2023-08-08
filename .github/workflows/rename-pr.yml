@@ -1,0 +1,62 @@
+name: PR
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        description: 'Jira project key'
+        required: true
+        type: string
+
+jobs:
+  Rename: # When a PR is opened, check the name is prepended with Jira issue number & update if needed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip remaining steps if Dependabot PR # Run this rather than just skipping the whole job, so that we see a green tick in the PR checks
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        id: skip
+        run: echo "Run not needed for this PR, skipping remaining steps"
+
+      - name: Get Jira issue key from PR branch name
+        if: steps.skip.outcome == 'skipped'
+        id: get_jira_issue_key
+        run: |
+          ISSUE_KEY_REGEX="^${{ inputs.project }}-\d+"
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          if [[ $BRANCH_NAME =~ $ISSUE_KEY_REGEX ]]; then
+            echo "jira_issue_key=${BASH_REMATCH[0]}" >> $GITHUB_OUTPUT
+          else
+            echo "No Jira issue key found in branch name."
+            exit 1
+          fi
+
+      - name: Echo status of get_jira_issue_key
+        if: steps.skip.outcome == 'skipped'
+        run: |
+          echo "get_jira_issue_key status: ${{ steps.get_jira_issue_key.outcome }}"
+
+      - name: Check PR title starts with Jira issue key
+        if: steps.skip.outcome == 'skipped' && steps.get_jira_issue_key.outcome == 'success'
+        id: check_pr_title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          EXPECTED_PREFIX="${{ steps.get_jira_issue_key.outputs.jira_issue_key }}:"
+
+          if [[ ! $PR_TITLE =~ ^$EXPECTED_PREFIX ]]; then
+            echo "PR title does not start with the Jira issue key."
+            exit 1
+          else
+            echo "PR title starts with the Jira issue key."
+          fi
+
+      - name: Echo status of check_pr_title
+        if: steps.skip.outcome == 'skipped'
+        run: |
+          echo "check_pr_title status: ${{ steps.check_pr_title.outcome }}"
+
+      # If the PR title doesn't start with the Jira issue key, rename the PR
+      - name: Rename PR
+        if: steps.skip.outcome == 'skipped' && steps.check_pr_title.outcome == 'failure'
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --title "${{ jira_issue_key }}: ${{ github.event.pull_request.title }}"
