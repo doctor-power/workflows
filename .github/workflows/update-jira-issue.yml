@@ -30,10 +30,6 @@ jobs:
       # START: run a script
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          repository: doctor-power/workflows
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: workflows
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -41,7 +37,7 @@ jobs:
           node-version: 18
 
       - name: Run script
-        run: node workflows/.github/workflows/simple-task.js
+        run: node .github/workflows/simple-task.js
       # END: run a script
 
       - name: Transition Jira ticket to Done
