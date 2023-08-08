@@ -49,8 +49,7 @@ jobs:
           echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
 
       - name: Log release branch names
-        run: |
-          echo "release_branches=$release_branches"
+        run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
       # START: run a script
       - name: Setup Node.js
