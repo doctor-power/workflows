@@ -22,16 +22,20 @@ jobs:
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
 
+      - name: Log JIRA_BASE_URL
+        run: |
+          echo "JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}"
+
       - name: Extract issue key from pull request title
         id: extract_keys
         run: |
           echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
-          echo "project_key=$(echo ${{ steps.extract_issue_key.outputs.issue_key }} | cut -d '-' -f1)" >> $GITHUB_OUTPUT
+          echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_OUTPUT
 
       - name: Log issue key and project key
         run: |
-          echo "issue_key=$issue_key"
-          echo "project_key=$project_key"
+          echo "Issue key: ${{ steps.extract_keys.outputs.issue_key }}"
+          echo "Project key: ${{ steps.extract_keys.outputs.project_key }}"
 
       - name: Checkout code
         uses: actions/checkout@v3
