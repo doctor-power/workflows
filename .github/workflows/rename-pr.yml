@@ -21,7 +21,7 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         id: get_jira_issue_key
         run: |
-          ISSUE_KEY_REGEX="^${{ inputs.project }}-\d+"
+          ISSUE_KEY_REGEX='^'"${{ inputs.project }}"'-\d+'
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           echo "Branch name: $BRANCH_NAME"
           echo "Issue key regex: $ISSUE_KEY_REGEX"
