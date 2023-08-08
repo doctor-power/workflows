@@ -59,4 +59,4 @@ jobs:
         if: steps.skip.outcome == 'skipped' && steps.check_pr_title.outcome == 'failure'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
-            --title "${{ jira_issue_key }}: ${{ github.event.pull_request.title }}"
+            --title "${{ steps.get_jira_issue_key.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"
