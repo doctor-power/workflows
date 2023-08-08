@@ -38,6 +38,10 @@ jobs:
 
       - name: Run script
         run: node .github/workflows/simple-task.js
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
       # END: run a script
 
       - name: Transition Jira ticket to Done
