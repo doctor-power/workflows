@@ -22,15 +22,28 @@ jobs:
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
 
-      - name: Extract issue key from pull request title
-        id: extract_issue_key
+      - name: Extract issue key and project key from pull request title
+        id: extract_keys
         run: |
-          echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+          issue_key=$(echo "${{ github.event.pull_request.title }}" | cut -d ':' -f1)
+          project_key=$(echo "$issue_key" | cut -d '-' -f1)
+          echo "issue_key=$issue_key" >> $GITHUB_ENV
+          echo "project_key=$project_key" >> $GITHUB_ENV
 
-      # START: run a script
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Fetch all history so that we can get the release branch names
 
+      - name: Get release branch names
+        id: get_release_branch_names
+        run: |
+          all_branches=$(git branch -r --format='%(refname:short)')
+          release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
+          echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
+
+      # START: run a script
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -42,10 +55,13 @@ jobs:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          ISSUE_KEY: ${{ steps.extract_keys.outputs.issue_key }}
+          PROJECT_KEY: ${{ steps.extract_keys.outputs.project_key }}
+          GITHUB_RELEASE_BRANCHES: ${{ steps.get_release_branch_names.outputs.release_branches }}
       # END: run a script
 
       - name: Transition Jira ticket to Done
         uses: atlassian/gajira-transition@v3
         with:
-          issue: ${{ steps.extract_issue_key.outputs.issue_key }}
+          issue: ${{ steps.extract_keys.outputs.issue_key }}
           transition: Done
