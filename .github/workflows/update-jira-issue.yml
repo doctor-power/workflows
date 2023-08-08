@@ -54,6 +54,12 @@ jobs:
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
       # START: run a script
+      - name: Checkout code from doctor-power/workflows repo
+        uses: actions/checkout@v3
+        with:
+          repository: doctor-power/workflows
+          path: reusable
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -63,7 +69,7 @@ jobs:
         run: npm install
 
       - name: Run script
-        run: node .github/workflows/index.js
+        run: node reusable/.github/workflows/index.js
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
