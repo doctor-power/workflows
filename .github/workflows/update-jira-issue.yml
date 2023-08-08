@@ -50,7 +50,7 @@ jobs:
           node-version: 18
 
       - name: Run script
-        run: node .github/workflows/simple-task.js
+        run: node .github/workflows/index.js
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
