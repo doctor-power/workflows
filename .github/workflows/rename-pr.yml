@@ -12,7 +12,8 @@ jobs:
   Rename: # When a PR is opened, check the name is prepended with Jira issue number & update if needed
     runs-on: ubuntu-latest
     steps:
-      - name: Skip remaining steps if Dependabot PR # Run this rather than just skipping the whole job, so that we see a green tick in the PR checks
+      # Run this rather than just skipping the whole job, so that we see a green tick in the PR checks
+      - name: Skip remaining steps if PR authored by Dependabot
         if: github.event.pull_request.user.login == 'dependabot[bot]'
         id: skip
         run: echo "Run not needed for this PR, skipping remaining steps"
@@ -39,17 +40,11 @@ jobs:
       - name: Run script
         if: steps.skip.outcome == 'skipped'
         id: run_script
-        run: node reusable/.github/workflows/extract_issue_key.js
+        run: node reusable/.github/workflows/check-issue-key.js
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           PROJECT_KEY: ${{ inputs.project }}
           CURRENT_PR_TITLE: ${{ github.event.pull_request.title }}
-
-      - name: Log Jira issue key
-        if: steps.skip.outcome == 'skipped'
-        run: |
-          echo "Jira issue key: ${{ steps.run_script.outputs.jira_issue_key }}"
-          echo "PR Title Starts With Issue Key: ${{ steps.run_script.outputs.pr_title_starts_with_issue_key }}"
 
       # If steps.run_script.outputs.jira_issue_key = '', exit with failure
       - name: Exit with failure if Jira issue key not found
@@ -71,8 +66,8 @@ jobs:
           echo "ERROR: PR title starts with Jira issue key(s) that doesn't/don't match PR branch name."
           exit 1
 
-      # If we know the Jira issue key & PR title doesn't start with Jira issue key, rename PR
-      - name: Checkout code from doctor-power/workflows repo
+      # If previous steps haven't exited with failure, & PR title doesn't start with Jira issue key, rename PR
+      - name: Checkout code from current repo
         if: >-
           steps.skip.outcome == 'skipped' &&
           steps.run_script.outputs.pr_title_starts_with_issue_key == 'false'

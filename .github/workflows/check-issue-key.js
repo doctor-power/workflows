@@ -29,7 +29,7 @@ if (ISSUE_KEYS && ISSUE_KEYS.length > 0) {
     console.log("No ISSUE_KEYS found in BRANCH_NAME.");
 }
 
-/* Check if the PR title starts with one of the ISSUE_KEYS followed by ':' */
+/* Check if the PR title starts with the ISSUE_KEYS followed by ':' */
 const issueKeysInTitle = (CURRENT_PR_TITLE.match(regex) || []).flatMap(key => key.split('+'));
 
 if (issueKeysInTitle.length > 0) {
