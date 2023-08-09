@@ -43,6 +43,9 @@ jobs:
         with:
           node-version: 18
 
+      - name: Install dependencies
+        run: npm install dotenv
+
       - name: Get Jira issue key from PR branch name
         if: steps.skip.outcome == 'skipped'
         id: get_jira_issue_key
