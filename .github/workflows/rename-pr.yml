@@ -35,7 +35,7 @@ jobs:
       - name: Get Jira issue key from PR branch name
         if: steps.skip.outcome == 'skipped'
         id: get_jira_issue_key
-        run: .github/scripts/extract_issue_key.sh
+        run: .github/workflows/extract_issue_key.sh
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           PROJECT: ${{ inputs.project }}
