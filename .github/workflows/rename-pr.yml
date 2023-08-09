@@ -17,21 +17,26 @@ jobs:
         id: skip
         run: echo "Run not needed for this PR, skipping remaining steps"
 
+      # Run script to extract Jira issue key from PR branch name
+      # & check if PR title starts with Jira issue key
       - name: Checkout code from doctor-power/workflows repo
+        if: steps.skip.outcome == 'skipped'
         uses: actions/checkout@v3
         with:
           repository: doctor-power/workflows
           path: reusable
 
       - name: Setup Node.js
+        if: steps.skip.outcome == 'skipped'
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install dependencies
+        if: steps.skip.outcome == 'skipped'
         run: npm install dotenv
 
-      - name: Get Jira issue key from PR branch name
+      - name: Run script
         if: steps.skip.outcome == 'skipped'
         id: get_jira_issue_key
         run: node reusable/.github/workflows/extract_issue_key.js
@@ -46,13 +51,21 @@ jobs:
           echo "Jira issue key: ${{ steps.get_jira_issue_key.outputs.jira_issue_key }}"
           echo "PR Title Starts With Issue Key: ${{ steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key }}"
 
+      # If we know the Jira issue key & PR title doesn't start with Jira issue key, rename PR
       - name: Checkout code from doctor-power/workflows repo
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.get_jira_issue_key.outputs.jira_issue_key != '' &&
+          steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key == 'false'
         uses: actions/checkout@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Rename PR
-        if: steps.skip.outcome == 'skipped' && steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key == 'false'
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.get_jira_issue_key.outputs.jira_issue_key != '' &&
+          steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key == 'false'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.get_jira_issue_key.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"
