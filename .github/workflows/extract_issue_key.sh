@@ -1,7 +1,7 @@
 #!/bin/bash
 
-BRANCH_NAME="WA-24_my-branch-name"
-PROJECT="WA"
+# BRANCH_NAME="WA-24_my-branch-name"
+# PROJECT="WA"
 
 ISSUE_KEY=$(echo $BRANCH_NAME | grep -oE "^$PROJECT-\d+")
 
