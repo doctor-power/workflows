@@ -57,7 +57,9 @@ jobs:
           steps.skip.outcome == 'skipped' &&
           steps.get_jira_issue_key.outputs.jira_issue_key == ''
         run: |
-          echo "Jira issue key not found in PR branch name, exiting with failure."
+          echo "ERROR: Jira issue key not found in PR branch name."
+          echo "Branches must be named with the Jira issue key at the start."
+          echo "For example: WA-42/my-branch-name"
           exit 1
 
       # If steps.get_jira_issue_key.outputs.pr_title_starts_with_other_issue_key = 'true', exit with failure
@@ -67,7 +69,7 @@ jobs:
           steps.get_jira_issue_key.outputs.jira_issue_key != '' &&
           steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key == 'false'
         run: |
-          echo "PR title starts with Jira issue key that doesn't match PR branch name, exiting with failure."
+          echo "ERROR: PR title starts with Jira issue key that doesn't match PR branch name."
           exit 1
 
       # If we know the Jira issue key & PR title doesn't start with Jira issue key, rename PR
