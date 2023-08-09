@@ -38,6 +38,12 @@ jobs:
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           PROJECT_KEY: ${{ inputs.project }}
+          CURRENT_PR_TITLE: ${{ github.event.pull_request.title }}
+
+      - name: Log Jira issue key
+        if: steps.skip.outcome == 'skipped'
+        run: |
+          echo "Jira issue key: ${{ steps.get_jira_issue_key.outputs.jira_issue_key }}"
 
       - name: Check PR title starts with Jira issue key
         if: steps.skip.outcome == 'skipped' && steps.get_jira_issue_key.outcome == 'success'
