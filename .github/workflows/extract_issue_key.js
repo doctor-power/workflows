@@ -13,6 +13,7 @@ if (BRANCH_NAME.match(regex)) {
 
 if (ISSUE_KEY) {
     console.log(`Extracted ISSUE_KEY: ${ISSUE_KEY}`);
+    console.log(`echo "jira_issue_key=${ISSUE_KEY}" >> $GITHUB_OUTPUT`);
 } else {
     console.log(`BRANCH_NAME: ${BRANCH_NAME}`);
     console.log(`PROJECT: ${PROJECT_KEY}`);

@@ -17,21 +17,6 @@ jobs:
         id: skip
         run: echo "Run not needed for this PR, skipping remaining steps"
 
-      # - name: Get Jira issue key from PR branch name
-      #   if: steps.skip.outcome == 'skipped'
-      #   id: get_jira_issue_key
-      #   run: |
-      #     BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-      #     echo "Branch name: $BRANCH_NAME"
-      #     ISSUE_KEY=$(echo ${{ BRANCH_NAME }} | grep -oE "^WA-\d+")
-      #     echo "Extracted ISSUE_KEY: $ISSUE_KEY"
-      #     if [[ -n $ISSUE_KEY ]]; then # if $ISSUE_KEY is not empty
-      #       echo "Extracted ISSUE_KEY: $ISSUE_KEY"
-      #       echo "jira_issue_key=$ISSUE_KEY" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "No Jira issue key found in branch name."
-      #       exit 1 #TODO: Do we want a red fail here? Or just skip the rest of the steps?
-      #     fi
       - name: Checkout code from doctor-power/workflows repo
         uses: actions/checkout@v3
         with:
@@ -54,17 +39,14 @@ jobs:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           PROJECT_KEY: ${{ inputs.project }}
 
-      - name: Echo status of get_jira_issue_key
-        if: steps.skip.outcome == 'skipped'
-        run: |
-          echo "get_jira_issue_key status: ${{ steps.get_jira_issue_key.outcome }}"
-
       - name: Check PR title starts with Jira issue key
         if: steps.skip.outcome == 'skipped' && steps.get_jira_issue_key.outcome == 'success'
         id: check_pr_title
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
           EXPECTED_PREFIX="${{ steps.get_jira_issue_key.outputs.jira_issue_key }}:"
+          echo "PR title: $PR_TITLE"
+          echo "Expected prefix: $EXPECTED_PREFIX"
 
           if [[ ! $PR_TITLE =~ ^$EXPECTED_PREFIX ]]; then
             echo "PR title does not start with the Jira issue key."
@@ -72,11 +54,6 @@ jobs:
           else
             echo "PR title starts with the Jira issue key."
           fi
-
-      - name: Echo status of check_pr_title
-        if: steps.skip.outcome == 'skipped'
-        run: |
-          echo "check_pr_title status: ${{ steps.check_pr_title.outcome }}"
 
       # If the PR title doesn't start with the Jira issue key, rename the PR
       - name: Rename PR
