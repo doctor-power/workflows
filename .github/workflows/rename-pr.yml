@@ -52,7 +52,7 @@ jobs:
         run: node reusable/.github/workflows/extract_issue_key.js
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
-          PROJECT: ${{ inputs.project }}
+          PROJECT_KEY: ${{ inputs.project }}
 
       - name: Echo status of get_jira_issue_key
         if: steps.skip.outcome == 'skipped'
