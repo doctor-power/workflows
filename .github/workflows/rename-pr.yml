@@ -56,3 +56,5 @@ jobs:
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.get_jira_issue_key.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
