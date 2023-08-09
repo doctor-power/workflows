@@ -1,6 +1,3 @@
-// BRANCH_NAME="WA-24_my-branch-name"
-// PROJECT="WA"
-
 let ISSUE_KEY;
 const regex = new RegExp(`^${PROJECT}-\\d+`);
 
