@@ -22,7 +22,9 @@ jobs:
         id: get_jira_issue_key
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          echo "Branch name: $BRANCH_NAME"
           ISSUE_KEY=$(echo $BRANCH_NAME | grep -oE "^WA-\d+")
+          echo "Extracted ISSUE_KEY: $ISSUE_KEY"
           if [[ -n $ISSUE_KEY ]]; then # if $ISSUE_KEY is not empty
             echo "Extracted ISSUE_KEY: $ISSUE_KEY"
             echo "jira_issue_key=$ISSUE_KEY" >> $GITHUB_OUTPUT
