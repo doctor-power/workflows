@@ -51,6 +51,25 @@ jobs:
           echo "Jira issue key: ${{ steps.get_jira_issue_key.outputs.jira_issue_key }}"
           echo "PR Title Starts With Issue Key: ${{ steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key }}"
 
+      # If steps.get_jira_issue_key.outputs.jira_issue_key = '', exit with failure
+      - name: Exit with failure if Jira issue key not found
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.get_jira_issue_key.outputs.jira_issue_key == ''
+        run: |
+          echo "Jira issue key not found in PR branch name, exiting with failure."
+          exit 1
+
+      # If steps.get_jira_issue_key.outputs.pr_title_starts_with_other_issue_key = 'true', exit with failure
+      - name: Exit with failure if PR title starts with Jira issue key that doesn't match PR branch name
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.get_jira_issue_key.outputs.jira_issue_key != '' &&
+          steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key == 'false'
+        run: |
+          echo "PR title starts with Jira issue key that doesn't match PR branch name, exiting with failure."
+          exit 1
+
       # If we know the Jira issue key & PR title doesn't start with Jira issue key, rename PR
       - name: Checkout code from doctor-power/workflows repo
         if: >-
