@@ -44,26 +44,10 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         run: |
           echo "Jira issue key: ${{ steps.get_jira_issue_key.outputs.jira_issue_key }}"
+          echo "PR Title Starts With Issue Key: ${{ steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key }}"
 
-      # - name: Check PR title starts with Jira issue key
-      #   if: steps.skip.outcome == 'skipped' && steps.get_jira_issue_key.outcome == 'success'
-      #   id: check_pr_title
-      #   run: |
-      #     PR_TITLE="${{ github.event.pull_request.title }}"
-      #     EXPECTED_PREFIX="${{ steps.get_jira_issue_key.outputs.jira_issue_key }}:"
-      #     echo "PR title: $PR_TITLE"
-      #     echo "Expected prefix: $EXPECTED_PREFIX"
-
-      #     if [[ ! $PR_TITLE =~ ^$EXPECTED_PREFIX ]]; then
-      #       echo "PR title does not start with the Jira issue key."
-      #       exit 1
-      #     else
-      #       echo "PR title starts with the Jira issue key."
-      #     fi
-
-      # If the PR title doesn't start with the Jira issue key, rename the PR
       - name: Rename PR
-        if: steps.skip.outcome == 'skipped' && steps.check_pr_title.outcome == 'failure'
+        if: steps.skip.outcome == 'skipped' && steps.get_jira_issue_key.outputs.pr_title_starts_with_issue_key == 'false'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.get_jira_issue_key.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"

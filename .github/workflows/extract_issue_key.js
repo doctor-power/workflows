@@ -18,18 +18,17 @@ if (ISSUE_KEY) {
     // console.log(`echo "jira_issue_key=${ISSUE_KEY}" >> $GITHUB_OUTPUT`);
     console.log(`::set-output name=jira_issue_key::${ISSUE_KEY}`);
 } else {
-    console.log(`BRANCH_NAME: ${BRANCH_NAME}`);
-    console.log(`PROJECT: ${PROJECT_KEY}`);
-    console.log(`ISSUE_KEY: ${ISSUE_KEY || 'undefined'}`);
     console.log("No ISSUE_KEY found in BRANCH_NAME.");
 }
 
 /* Check if the PR title starts with ISSUE_KEY followed by ':' */
-// if (CURRENT_PR_TITLE.startsWith(`${ISSUE_KEY}:`)) {
-//     console.log(`PR title starts with ISSUE_KEY: ${ISSUE_KEY}`);
-//     console.log(`echo "pr_title_starts_with_issue_key=true" >> $GITHUB_OUTPUT`);
-// } else {
-//     console.log(`PR title: ${CURRENT_PR_TITLE}`);
-//     console.log(`PR title does not start with ISSUE_KEY: ${ISSUE_KEY}`);
-//     console.log(`echo "pr_title_starts_with_issue_key=false" >> $GITHUB_OUTPUT`);
-// }
+if (CURRENT_PR_TITLE.startsWith(`${ISSUE_KEY}:`)) {
+    console.log(`PR title starts with ISSUE_KEY: ${ISSUE_KEY}`);
+    // console.log(`echo "pr_title_starts_with_issue_key=true" >> $GITHUB_OUTPUT`);
+    console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
+} else {
+    console.log(`PR title: ${CURRENT_PR_TITLE}`);
+    console.log(`PR title does not start with ISSUE_KEY: ${ISSUE_KEY}`);
+    // console.log(`echo "pr_title_starts_with_issue_key=false" >> $GITHUB_OUTPUT`);
+    console.log(`::set-output name=pr_title_starts_with_issue_key::false`);
+}
