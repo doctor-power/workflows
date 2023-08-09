@@ -32,15 +32,16 @@ jobs:
       #       echo "No Jira issue key found in branch name."
       #       exit 1 #TODO: Do we want a red fail here? Or just skip the rest of the steps?
       #     fi
-      - name: Checkout code
+      - name: Checkout code from doctor-power/workflows repo
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: doctor-power/workflows
+          path: reusable
 
       - name: Get Jira issue key from PR branch name
         if: steps.skip.outcome == 'skipped'
         id: get_jira_issue_key
-        run: .github/workflows/extract_issue_key.sh
+        run: reusable/.github/workflows/extract_issue_key.sh
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           PROJECT: ${{ inputs.project }}
