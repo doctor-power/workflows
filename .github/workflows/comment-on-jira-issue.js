@@ -18,6 +18,9 @@ PR_BODY = PR_BODY.split('## Checklist')[0];
 // Replace <img> tags with the plain url
 PR_BODY = PR_BODY.replace(/<img[^>]*src="([^"]*)"[^>]*>/g, '$1');
 
+// Regular expression for detecting URLs.
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+
 const createContentItem = (text, type = "text", marks = []) => ({
   "text": text,
   "type": type,
@@ -132,15 +135,34 @@ while (i < lines.length) {
             } else {
                 let content = [];
                 let lastIndex = 0;
-                let boldMatch;
-                const boldRegex = /\*\*([^*]+)\*\*/g;
+                let match;
+                const combinedRegex = new RegExp(`(${urlRegex.source}|${boldRegex.source})`, 'g');
 
-                while ((boldMatch = boldRegex.exec(line)) !== null) {
-                    if (boldMatch.index !== lastIndex) {
-                        content.push(createContentItem(line.substring(lastIndex, boldMatch.index)));
+                while ((match = combinedRegex.exec(line)) !== null) {
+                    if (match.index !== lastIndex) {
+                        content.push(createContentItem(line.substring(lastIndex, match.index)));
                     }
-                    content.push(createContentItem(boldMatch[1], "text", [{"type": "strong"}]));
-                    lastIndex = boldMatch.index + boldMatch[0].length;
+
+                    // If it's a URL match.
+                    if (match[1] && match[1].startsWith('http')) {
+                        content.push({
+                            "type": "text",
+                            "text": match[1],
+                            "marks": [{
+                                "type": "link",
+                                "attrs": {
+                                    "href": match[1],
+                                    "title": match[1]
+                                }
+                            }]
+                        });
+                    }
+                    // If it's a bold match.
+                    else if (match[1]) {
+                        content.push(createContentItem(match[1], "text", [{"type": "strong"}]));
+                    }
+
+                    lastIndex = match.index + match[0].length;
                 }
 
                 if (lastIndex !== line.length) {
