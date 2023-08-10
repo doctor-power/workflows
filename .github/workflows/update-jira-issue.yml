@@ -99,7 +99,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install node-fetch
+        run: npm install node-fetch dotenv
 
       - name: Run script
         run: node reusable/.github/workflows/comment-on-jira-issue.js
