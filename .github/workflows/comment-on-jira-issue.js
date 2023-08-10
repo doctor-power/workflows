@@ -48,8 +48,12 @@ const contentItems = PR_BODY.split('\n')
       }
 
       if (item.startsWith('### ')) {
+          item = item.replace(/^### /, ''); // Remove the '### ' prefix
           return {
-              "content": content,
+              "content": [{
+                  "text": item,
+                  "type": "text"
+              }],
               "type": "heading",
               "attrs": {
                   "level": 3
