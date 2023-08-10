@@ -27,7 +27,7 @@ const createContentItem = (text, type = "text", marks = []) => ({
 // Table handling helper function
 const processTableLines = (lines) => {
     let headers = lines[0].split('|').map(cell => cell.trim()).filter(cell => cell);
-    let rows = lines.slice(2).map(row =>
+    let rows = lines.slice(3).map(row =>
         row.split('|').map(cell => cell.trim()).filter(cell => cell)
     );
 
