@@ -18,9 +18,6 @@ PR_BODY = PR_BODY.split('## Checklist')[0];
 // Replace <img> tags with the plain url
 PR_BODY = PR_BODY.replace(/<img[^>]*src="([^"]*)"[^>]*>/g, '$1');
 
-// Regular expression for detecting URLs.
-const urlRegex = /(https?:\/\/[^\s]+)/g;
-
 const createContentItem = (text, type = "text", marks = []) => ({
   "text": text,
   "type": type,
@@ -136,6 +133,8 @@ while (i < lines.length) {
                 let content = [];
                 let lastIndex = 0;
                 let match;
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                const boldRegex = /\*\*([^*]+)\*\*/g;
                 const combinedRegex = new RegExp(`(${urlRegex.source}|${boldRegex.source})`, 'g');
 
                 while ((match = combinedRegex.exec(line)) !== null) {
