@@ -27,20 +27,34 @@ const createContentItem = (text, type = "text", marks = []) => ({
 // Table handling function
 const processTableLines = (lines) => {
   let headers = lines[0].split('|').slice(1, -1).map(cell => cell.trim());
+
   let rows = lines.slice(2).map(row =>
       row.split('|').slice(1, -1).map(cell => cell.trim())
   );
 
   return {
       "type": "table",
+      "attrs": {
+          "isNumberColumnEnabled": false,
+          "layout": "default"
+      },
       "content": [
           {
               "type": "tableRow",
               "content": headers.map(header => ({
                   "type": "tableHeader",
+                  "attrs": {},
                   "content": [{
                       "type": "paragraph",
-                      "content": [{"type": "text", "text": header}]
+                      "content": [{
+                          "type": "text",
+                          "text": header,
+                          "marks": [
+                              {
+                                  "type": "strong"
+                              }
+                          ]
+                      }]
                   }]
               }))
           },
@@ -48,6 +62,7 @@ const processTableLines = (lines) => {
               "type": "tableRow",
               "content": row.map(cell => ({
                   "type": "tableCell",
+                  "attrs": {},
                   "content": [{
                       "type": "paragraph",
                       "content": [{"type": "text", "text": cell}]
@@ -56,7 +71,7 @@ const processTableLines = (lines) => {
           }))
       ]
   };
-};
+}
 
 // Process PR_BODY content
 let i = 0;
