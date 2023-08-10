@@ -157,8 +157,8 @@ while (i < lines.length) {
                         });
                     }
                     // If it's a bold match.
-                    else if (match[2]) {
-                      content.push(createContentItem(match[2], "text", [{"type": "strong"}]));
+                    else if (match[5]) {
+                      content.push(createContentItem(match[5], "text", [{"type": "strong"}]));
                     }
 
                     lastIndex = match.index + match[0].length;
