@@ -15,31 +15,32 @@ const ISSUE_KEYS = PR_TITLE.split(':')[0].match(/[A-Z]+-\d+/g);
 // Discard '# Checklist' and everything after it
 PR_BODY = PR_BODY.split('# Checklist')[0];
 
-// Replace <img> tags with the plain url  (e.g. <img src="https://i.imgur.com/12345.png"> => https://i.imgur.com/12345.png)
+// Replace <img> tags with the plain url
 PR_BODY = PR_BODY.replace(/<img[^>]*src="([^"]*)"[^>]*>/g, '$1');
 
-// Replace all newlines with '\n'
-PR_BODY = PR_BODY.replace(/\n/g, '\\n');
+// Split PR_BODY by newlines and filter out empty items
+const contentItems = PR_BODY.split('\n')
+    .filter(item => item.trim() !== "")  // filter out empty or whitespace-only strings
+    .map(item => {
+        return {
+            "content": [{
+                "text": item,
+                "type": "text"
+            }],
+            "type": "paragraph"
+        };
+    });
 
-console.log(PR_BODY);
 
-const bodyData = `{
+// console.log(contentItems[0]);
+
+const bodyData = JSON.stringify({
   "body": {
-    "content": [
-      {
-        "content": [
-          {
-            "text": "${PR_BODY}",
-            "type": "text"
-          }
-        ],
-        "type": "paragraph"
-      }
-    ],
+    "content": contentItems,
     "type": "doc",
     "version": 1
   }
-}`;
+});
 
 /* Comment on each Jira issue with updated PR_BODY */
 const commentOnJiraIssue = async () => {
