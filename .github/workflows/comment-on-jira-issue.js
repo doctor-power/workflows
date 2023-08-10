@@ -158,6 +158,8 @@ while (i < lines.length) {
                     }
                     // If it's a bold match.
                     else if (match[1]) {
+                      console.log(match[1]);
+                      console.log(match[1].slice(2, -2));
                       const boldText = match[1].slice(2, -2);  // Remove ** from both ends
                       content.push(createContentItem(boldText, "text", [{"type": "strong"}]));
                     }
