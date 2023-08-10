@@ -31,8 +31,42 @@ const processTableLines = (lines) => {
 
   let headers = filteredLines[0].split('|').slice(1, -1).map(cell => cell.trim());
 
+  const processCellContent = (cell) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    let match;
+    let lastIndex = 0;
+    let content = [];
+
+    while ((match = urlRegex.exec(cell)) !== null) {
+      if (match.index !== lastIndex) {
+        content.push(createContentItem(cell.substring(lastIndex, match.index)));
+      }
+      content.push({
+        "type": "text",
+        "text": match[0],
+        "marks": [{
+          "type": "link",
+          "attrs": {
+            "href": match[0],
+            "title": match[0]
+          }
+        }]
+      });
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex !== cell.length) {
+      content.push(createContentItem(cell.substring(lastIndex)));
+    }
+
+    return {
+      "type": "paragraph",
+      "content": content
+    };
+  }
+
   let rows = filteredLines.slice(1).map(row =>
-      row.split('|').slice(1, -1).map(cell => cell.trim())
+      row.split('|').slice(1, -1).map(cell => processCellContent(cell.trim()))
   );
 
   return {
@@ -63,13 +97,10 @@ const processTableLines = (lines) => {
           },
           ...rows.map(row => ({
               "type": "tableRow",
-              "content": row.map(cell => ({
+              "content": row.map(cellContent => ({
                   "type": "tableCell",
                   "attrs": {},
-                  "content": [{
-                      "type": "paragraph",
-                      "content": [{"type": "text", "text": cell}]
-                  }]
+                  "content": [cellContent]
               }))
           }))
       ]
