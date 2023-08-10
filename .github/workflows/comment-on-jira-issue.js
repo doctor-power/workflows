@@ -13,7 +13,7 @@ import fetch from 'node-fetch';
 const ISSUE_KEYS = PR_TITLE.split(':')[0].match(/[A-Z]+-\d+/g);
 
 // Discard '# Checklist' and everything after it
-PR_BODY = PR_BODY.split('# Checklist')[0];
+PR_BODY = PR_BODY.split('## Checklist')[0];
 
 // Replace <img> tags with the plain url
 PR_BODY = PR_BODY.replace(/<img[^>]*src="([^"]*)"[^>]*>/g, '$1');
@@ -47,17 +47,33 @@ const contentItems = PR_BODY.split('\n')
           content.push(createContentItem(item.substring(lastIndex)));
       }
 
-      if (item.startsWith('## ')) {
+      if (item.startsWith('### ')) {
           return {
               "content": content,
+              "type": "heading",
+              "attrs": {
+                  "level": 3
+              }
+          };
+      } else if (item.startsWith('## ')) {
+          item = item.replace(/^## /, ''); // Remove the '## ' prefix
+          return {
+              "content": [{
+                  "text": item,
+                  "type": "text"
+              }],
               "type": "heading",
               "attrs": {
                   "level": 2
               }
           };
       } else if (item.startsWith('# ')) {
+          item = item.replace(/^# /, ''); // Remove the '# ' prefix
           return {
-              "content": content,
+              "content": [{
+                  "text": item,
+                  "type": "text"
+              }],
               "type": "heading",
               "attrs": {
                   "level": 1
