@@ -26,9 +26,12 @@ const createContentItem = (text, type = "text", marks = []) => ({
 
 // Table handling function
 const processTableLines = (lines) => {
-  let headers = lines[0].split('|').slice(1, -1).map(cell => cell.trim());
+  // Filter out the delimiter line.
+  const filteredLines = lines.filter(line => !/^\|\s*[-]+\s*\|/.test(line));
 
-  let rows = lines.slice(2).map(row =>
+  let headers = filteredLines[0].split('|').slice(1, -1).map(cell => cell.trim());
+
+  let rows = filteredLines.slice(1).map(row =>
       row.split('|').slice(1, -1).map(cell => cell.trim())
   );
 
@@ -79,9 +82,11 @@ const contentItems = [];
 const lines = PR_BODY.split('\n');
 while (i < lines.length) {
     let line = lines[i];
-    if (line.startsWith('|') && line.endsWith('|')) {
+
+    // Identify the start of the table.
+    if (line.startsWith('|') && lines[i + 1] && lines[i + 1].startsWith('| ---')) {
         let tableLines = [];
-        while (i < lines.length && lines[i].startsWith('|') && lines[i].endsWith('|')) {
+        while (i < lines.length && lines[i].startsWith('|')) {
             tableLines.push(lines[i]);
             i++;
         }
