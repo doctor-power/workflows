@@ -9,7 +9,7 @@ let PR_BODY = process.env.PR_BODY;
 
 import fetch from 'node-fetch';
 
-// Extract the issue keys from start of PR_TITLE
+// Extract the issue keys from the start of PR_TITLE
 const ISSUE_KEYS = PR_TITLE.split(':')[0].match(/[A-Z]+-\d+/g);
 
 // Discard '## Checklist' and everything after it
@@ -24,10 +24,9 @@ const createContentItem = (text, type = "text", marks = []) => ({
   "marks": marks
 });
 
-// Table handling helper function
+// Table handling function
 const processTableLines = (lines) => {
   let headers = lines[0].split('|').slice(1, -1).map(cell => cell.trim());
-
   let rows = lines.slice(2).map(row =>
       row.split('|').slice(1, -1).map(cell => cell.trim())
   );
@@ -39,27 +38,32 @@ const processTableLines = (lines) => {
               "type": "tableRow",
               "content": headers.map(header => ({
                   "type": "tableHeader",
-                  "content": [{ "type": "text", "text": header }]
+                  "content": [{
+                      "type": "paragraph",
+                      "content": [{"type": "text", "text": header}]
+                  }]
               }))
           },
           ...rows.map(row => ({
               "type": "tableRow",
               "content": row.map(cell => ({
                   "type": "tableCell",
-                  "content": [{ "type": "text", "text": cell }]
+                  "content": [{
+                      "type": "paragraph",
+                      "content": [{"type": "text", "text": cell}]
+                  }]
               }))
           }))
       ]
   };
-}
+};
 
-// Modified content items mapping
+// Process PR_BODY content
 let i = 0;
 const contentItems = [];
 const lines = PR_BODY.split('\n');
 while (i < lines.length) {
     let line = lines[i];
-
     if (line.startsWith('|') && line.endsWith('|')) {
         let tableLines = [];
         while (i < lines.length && lines[i].startsWith('|') && lines[i].endsWith('|')) {
@@ -68,7 +72,6 @@ while (i < lines.length) {
         }
         contentItems.push(processTableLines(tableLines));
     } else {
-        // ... (existing handling for non-table lines)
         if (line.trim() !== "") {
             if (line.startsWith('### ')) {
                 line = line.replace(/^### /, '');
@@ -108,8 +111,6 @@ while (i < lines.length) {
                 });
             } else {
                 let content = [];
-
-                // Handle bold (Markdown: **bold**)
                 let lastIndex = 0;
                 let boldMatch;
                 const boldRegex = /\*\*([^*]+)\*\*/g;
@@ -144,7 +145,6 @@ const bodyData = JSON.stringify({
   }
 });
 
-/* Comment on each Jira issue with updated PR_BODY */
 const commentOnJiraIssue = async () => {
   try {
     for (const ISSUE_KEY of ISSUE_KEYS) {
