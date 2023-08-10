@@ -12,7 +12,7 @@ import fetch from 'node-fetch';
 // Extract the issue keys from start of PR_TITLE
 const ISSUE_KEYS = PR_TITLE.split(':')[0].match(/[A-Z]+-\d+/g);
 
-// Discard '# Checklist' and everything after it
+// Discard '## Checklist' and everything after it
 PR_BODY = PR_BODY.split('## Checklist')[0];
 
 // Replace <img> tags with the plain url
@@ -24,74 +24,116 @@ const createContentItem = (text, type = "text", marks = []) => ({
   "marks": marks
 });
 
-// Split PR_BODY by newlines and filter out empty items
-const contentItems = PR_BODY.split('\n')
-  .filter(item => item.trim() !== "")  // filter out empty or whitespace-only strings
-  .map(item => {
-      let content = [];
+// Table handling helper function
+const processTableLines = (lines) => {
+    let headers = lines[0].split('|').map(cell => cell.trim()).filter(cell => cell);
+    let rows = lines.slice(2).map(row =>
+        row.split('|').map(cell => cell.trim()).filter(cell => cell)
+    );
 
-      // Handle bold (Markdown: **bold**)
-      let lastIndex = 0;
-      let boldMatch;
-      const boldRegex = /\*\*([^*]+)\*\*/g;
+    return {
+        "type": "table",
+        "content": [
+            {
+                "type": "tableRow",
+                "content": headers.map(header => ({
+                    "type": "tableHeader",
+                    "content": [{ "type": "text", "text": header }]
+                }))
+            },
+            ...rows.map(row => ({
+                "type": "tableRow",
+                "content": row.map(cell => ({
+                    "type": "tableCell",
+                    "content": [{ "type": "text", "text": cell }]
+                }))
+            }))
+        ]
+    };
+}
 
-      while ((boldMatch = boldRegex.exec(item)) !== null) {
-          if (boldMatch.index !== lastIndex) {
-              content.push(createContentItem(item.substring(lastIndex, boldMatch.index)));
-          }
-          content.push(createContentItem(boldMatch[1], "text", [{"type": "strong"}]));
-          lastIndex = boldMatch.index + boldMatch[0].length;
-      }
+// Modified content items mapping
+let i = 0;
+const contentItems = [];
+const lines = PR_BODY.split('\n');
+while (i < lines.length) {
+    let line = lines[i];
 
-      if (lastIndex !== item.length) {
-          content.push(createContentItem(item.substring(lastIndex)));
-      }
+    if (line.startsWith('|') && line.endsWith('|')) {
+        let tableLines = [];
+        while (i < lines.length && lines[i].startsWith('|') && lines[i].endsWith('|')) {
+            tableLines.push(lines[i]);
+            i++;
+        }
+        contentItems.push(processTableLines(tableLines));
+    } else {
+        // ... (existing handling for non-table lines)
+        if (line.trim() !== "") {
+            if (line.startsWith('### ')) {
+                line = line.replace(/^### /, '');
+                contentItems.push({
+                    "content": [{
+                        "text": line,
+                        "type": "text"
+                    }],
+                    "type": "heading",
+                    "attrs": {
+                        "level": 3
+                    }
+                });
+            } else if (line.startsWith('## ')) {
+                line = line.replace(/^## /, '');
+                contentItems.push({
+                    "content": [{
+                        "text": line,
+                        "type": "text"
+                    }],
+                    "type": "heading",
+                    "attrs": {
+                        "level": 2
+                    }
+                });
+            } else if (line.startsWith('# ')) {
+                line = line.replace(/^# /, '');
+                contentItems.push({
+                    "content": [{
+                        "text": line,
+                        "type": "text"
+                    }],
+                    "type": "heading",
+                    "attrs": {
+                        "level": 1
+                    }
+                });
+            } else {
+                let content = [];
 
-      if (item.startsWith('### ')) {
-          item = item.replace(/^### /, ''); // Remove the '### ' prefix
-          return {
-              "content": [{
-                  "text": item,
-                  "type": "text"
-              }],
-              "type": "heading",
-              "attrs": {
-                  "level": 3
-              }
-          };
-      } else if (item.startsWith('## ')) {
-          item = item.replace(/^## /, ''); // Remove the '## ' prefix
-          return {
-              "content": [{
-                  "text": item,
-                  "type": "text"
-              }],
-              "type": "heading",
-              "attrs": {
-                  "level": 2
-              }
-          };
-      } else if (item.startsWith('# ')) {
-          item = item.replace(/^# /, ''); // Remove the '# ' prefix
-          return {
-              "content": [{
-                  "text": item,
-                  "type": "text"
-              }],
-              "type": "heading",
-              "attrs": {
-                  "level": 1
-              }
-          };
-      } else {
-          return {
-              "content": content,
-              "type": "paragraph"
-          };
-      }
-  });
+                // Handle bold (Markdown: **bold**)
+                let lastIndex = 0;
+                let boldMatch;
+                const boldRegex = /\*\*([^*]+)\*\*/g;
 
-// console.log(contentItems[0]);
+                while ((boldMatch = boldRegex.exec(line)) !== null) {
+                    if (boldMatch.index !== lastIndex) {
+                        content.push(createContentItem(line.substring(lastIndex, boldMatch.index)));
+                    }
+                    content.push(createContentItem(boldMatch[1], "text", [{"type": "strong"}]));
+                    lastIndex = boldMatch.index + boldMatch[0].length;
+                }
+
+                if (lastIndex !== line.length) {
+                    content.push(createContentItem(line.substring(lastIndex)));
+                }
+
+                contentItems.push({
+                    "content": content,
+                    "type": "paragraph"
+                });
+            }
+        }
+        i++;
+    }
+}
 
 const bodyData = JSON.stringify({
   "body": {
