@@ -15,10 +15,13 @@ const ISSUE_KEYS = PR_TITLE.split(':')[0].match(/[A-Z]+-\d+/g);
 // Discard '# Checklist' and everything after it
 PR_BODY = PR_BODY.split('# Checklist')[0];
 
+// Replace <img> tags with the plain url  (e.g. <img src="https://i.imgur.com/12345.png"> => https://i.imgur.com/12345.png)
+PR_BODY = PR_BODY.replace(/<img[^>]*src="([^"]*)"[^>]*>/g, '$1');
+
 // Replace all newlines with '\n'
 PR_BODY = PR_BODY.replace(/\n/g, '\\n');
 
-// console.log(PR_BODY_WITHOUT_CHECKLIST_WITHOUT_NEWLINES);
+console.log(PR_BODY);
 
 const bodyData = `{
   "body": {
