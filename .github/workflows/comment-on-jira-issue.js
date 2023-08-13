@@ -235,16 +235,19 @@ const commentOnJiraIssue = async () => {
         body: bodyData
       })
       .then(response => {
+        if (!response.ok) {
+            throw new Error(`Response: ${response.status} ${response.statusText}`);
+        }
         console.log(
-          `Response: ${response.status} ${response.statusText}`
+            `Response: ${response.status} ${response.statusText}`
         );
         return response.text();
       })
       .then(text => console.log(text))
-      .catch(err => console.error(err));
     }
   } catch (error) {
-    console.error(error);
+    console.error('Failed to add comment on Jira issue:', error);
+    process.exit(1);
   }
 }
 
