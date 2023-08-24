@@ -40,7 +40,7 @@ jobs:
       - name: Run script
         if: steps.skip.outcome == 'skipped'
         id: run_script
-        run: node reusable/.github/workflows/check-issue-key.js
+        run: node reusable/.github/workflows/check-issue-key.mjs
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           PROJECT_KEY: ${{ inputs.project }}
