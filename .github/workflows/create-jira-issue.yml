@@ -61,22 +61,24 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
+      - name: Get random github team member
+        if: steps.skip.outcome == 'skipped'
+        id: get_random_github_team_member
+        run: |
+          MEMBERS=$(curl -s -H "Authorization: token ${{ secrets.READ_ONLY_ORG_TEAM_MEMBERS }}" \
+          "https://api.github.com/orgs/doctor-power/teams/${{ inputs.github_team }}/members")
+          RANDOM_MEMBER=$(echo "$MEMBERS" | jq -r '.[] | .login' | shuf -n 1)
+          echo "random_team_member=$RANDOM_MEMBER" >> $GITHUB_OUTPUT
+
+      - name: Log random github team member
+        if: steps.skip.outcome == 'skipped'
+        run: echo "Random GitHub team member ${{ steps.get_random_github_team_member.outputs.random_team_member }}"
+
       - name: Assign PR to GH team member # Assign PR to a random member of the specified GitHub Org team
         if: steps.skip.outcome == 'skipped'
-        uses: dc-ag/auto-assign-assignees-from-team@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          read-token: ${{ secrets.READ_ONLY_ORG_TEAM_MEMBERS }} # Read only token which needs access to fetch team members
-          team: ${{ inputs.github_team }}
-          amount: 1 # Amount of assignees to assign
-
-      - name: Get PR assignee # To be used to assign Jira issue to the same person
-        if: steps.skip.outcome == 'skipped'
-        id: get_assignee
         run: |
-          assignee_object=$(gh pr view ${{ github.event.pull_request.number }} --json assignees --jq '.assignees[0]')
-          assignee_username=$(echo "$assignee_object" | jq -r '.login')
-          echo "assignee=$assignee_username" >> $GITHUB_OUTPUT
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --add-reviewer ${{ steps.get_random_github_team_member.outputs.random_team_member }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -100,7 +102,7 @@ jobs:
           body: ${{ github.event.pull_request.body }}
           prlink: ${{ github.event.pull_request._links.html.href }}
           labels: ${{ inputs.labels }}
-          assignee: ${{ steps.get_assignee.outputs.assignee }}
+          assignee: ${{ steps.get_random_github_team_member.outputs.random_team_member }}
           releaseBranches: ${{ steps.get_release_branch_names.outputs.release_branches }}
           githubJiraUserMap: ${{ vars.GH_JIRA_USER_MAP }}
 
