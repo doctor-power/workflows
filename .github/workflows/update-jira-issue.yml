@@ -66,6 +66,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install node-fetch
+        working-directory: reusable
 
       - name: Run script
         run: node reusable/.github/workflows/release-versions.js
@@ -100,6 +101,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install node-fetch dotenv
+        working-directory: reusable
 
       - name: Run script
         run: node reusable/.github/workflows/comment-on-jira-issue.js
