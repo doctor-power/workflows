@@ -104,7 +104,7 @@ jobs:
         working-directory: reusable
 
       - name: Run script
-        run: node reusable/.github/workflows/comment-on-jira-issue.js
+        run: node reusable/.github/workflows/comment-on-jira-issue.mjs
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
