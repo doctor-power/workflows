@@ -36,6 +36,7 @@ jobs:
       - name: Install dependencies
         if: steps.skip.outcome == 'skipped'
         run: npm install dotenv
+        working-directory: reusable
 
       - name: Run script
         if: steps.skip.outcome == 'skipped'

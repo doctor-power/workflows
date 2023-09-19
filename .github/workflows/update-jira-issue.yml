@@ -11,6 +11,9 @@ on:
         required: true
 
 jobs:
+  # On merge of Dependabot PR
+  # - Check fixVersion is set correctly, and if not, update it
+  # - Transition issue to 'Done'
   update_dependabot_issue_on_pr_merge:
     if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.merged == true # Dependabot is the author & PR is merged
     runs-on: ubuntu-latest
@@ -69,7 +72,7 @@ jobs:
         working-directory: reusable
 
       - name: Run script
-        run: node reusable/.github/workflows/release-versions.js
+        run: node reusable/.github/workflows/release-version.mjs
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
@@ -111,33 +114,3 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
-
-      # Update release version on Jira issue
-      - name: Extract issue key from pull request title
-        id: extract_keys
-        run: |
-          echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
-          echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_OUTPUT
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0 # Fetch all history so that we can get the release branch names
-
-      - name: Get release branch names
-        id: get_release_branch_names
-        run: |
-          all_branches=$(git branch -r --format='%(refname:short)')
-          release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
-          echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
-
-      - name: Run script
-        run: node reusable/.github/workflows/release-versions.js
-        env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          ISSUE_KEY: ${{ steps.extract_keys.outputs.issue_key }}
-          PROJECT_KEY: ${{ steps.extract_keys.outputs.project_key }}
-          GITHUB_RELEASE_BRANCHES: ${{ steps.get_release_branch_names.outputs.release_branches }}

@@ -37,6 +37,7 @@ const processTableLines = (lines) => {
     let lastIndex = 0;
     let content = [];
 
+    // Find all the URLs in the cell and create a link mark for them.
     while ((match = urlRegex.exec(cell)) !== null) {
       if (match.index !== lastIndex) {
         content.push(createContentItem(cell.substring(lastIndex, match.index)));
@@ -114,7 +115,7 @@ const lines = PR_BODY.split('\n');
 while (i < lines.length) {
     let line = lines[i];
 
-    // Identify the start of the table.
+    // If it's a table
     if (line.startsWith('|') && lines[i + 1] && lines[i + 1].startsWith('| ---')) {
         let tableLines = [];
         while (i < lines.length && lines[i].startsWith('|')) {
@@ -122,9 +123,9 @@ while (i < lines.length) {
             i++;
         }
         contentItems.push(processTableLines(tableLines));
-    } else {
+    } else { // If it's not part of a table
         if (line.trim() !== "") {
-            if (line.startsWith('### ')) {
+            if (line.startsWith('### ')) { // If it's a h3
                 line = line.replace(/^### /, '');
                 contentItems.push({
                     "content": [{
@@ -136,7 +137,7 @@ while (i < lines.length) {
                         "level": 3
                     }
                 });
-            } else if (line.startsWith('## ')) {
+            } else if (line.startsWith('## ')) { // If it's a h2
                 line = line.replace(/^## /, '');
                 contentItems.push({
                     "content": [{
@@ -148,7 +149,7 @@ while (i < lines.length) {
                         "level": 2
                     }
                 });
-            } else if (line.startsWith('# ')) {
+            } else if (line.startsWith('# ')) { // If it's a h1
                 line = line.replace(/^# /, '');
                 contentItems.push({
                     "content": [{
@@ -160,7 +161,7 @@ while (i < lines.length) {
                         "level": 1
                     }
                 });
-            } else {
+            } else { // If it's anything else, treat it as a paragraph
                 let content = [];
                 let lastIndex = 0;
                 let match;
