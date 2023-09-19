@@ -81,7 +81,9 @@ const fetchAndCompare = async () => {
         console.log('Currently assigned fixVersion:', predictedFixVersion);
         console.log('Correct fixVersion:', correctFixVersion);
       } else {
-        console.log('Release branch number not found in Jira fixVersions. This shouldn\'t be the case. Unclear how to proceed, so returning early.');
+        console.log('Release branch number:', releaseBranchNumber)
+        console.log('All Jira fixVersions in the project:', allJiraFixVersions);
+        console.log('Release branch number not found in Jira fixVersions. Unclear how to proceed, so returning early.');
         return;
       }
     }  else {
