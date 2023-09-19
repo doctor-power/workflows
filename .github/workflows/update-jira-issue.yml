@@ -87,7 +87,10 @@ jobs:
           issue: ${{ steps.extract_keys.outputs.issue_key }}
           transition: Done
 
-  comment_on_jira_issue_on_pr_merge:
+  # On merge of non-Dependabot PR
+  # - Check fixVersion is set correctly, and if not, update it
+  # - Add a comment to the associated Jira issue(s) with the PR's Description
+  update_jira_issue_on_pr_merge:
     if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.merged == true # Dependabot is NOT the author & PR is merged
     runs-on: ubuntu-latest
     steps:
@@ -153,6 +156,7 @@ jobs:
           ISSUE_KEY: ${{ steps.extract_keys.outputs.issue_key }}
           PROJECT_KEY: ${{ steps.extract_keys.outputs.project_key }}
           GITHUB_RELEASE_BRANCHES: ${{ steps.get_release_branch_names.outputs.release_branches }}
+          PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
 
       - name: Run Comment on Jira Issue script
         run: node reusable/.github/workflows/comment-on-jira-issue.mjs
