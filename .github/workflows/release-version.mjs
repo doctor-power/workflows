@@ -62,8 +62,7 @@ const fetchAndCompare = async () => {
 
     // return early if (currentFixVersionNames.length > 1)
     if (currentFixVersionNames.length > 1) {
-      console.log('More than one fixVersion assigned to issue. This shouldn\'t be the case. Unclear how to proceed, so returning early.');
-      return;
+      console.error('More than one fixVersion assigned to issue. This shouldn\'t be the case. Unclear how to proceed, so returning early.');
     } else {
       predictedFixVersion = currentFixVersionNames[0];
     }
@@ -83,8 +82,7 @@ const fetchAndCompare = async () => {
       } else {
         console.log('Release branch number:', releaseBranchNumber)
         console.log('All Jira fixVersions in the project:', allJiraFixVersions);
-        console.log('Release branch number not found in Jira fixVersions. Unclear how to proceed, so returning early.');
-        return;
+        console.error('Release branch number not found in Jira fixVersions. Unclear how to proceed, so returning early.');
       }
     }  else {
       // Get the release branch numbers from the Github release branches
