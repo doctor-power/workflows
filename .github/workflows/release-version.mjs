@@ -74,7 +74,7 @@ const fetchAndCompare = async () => {
     let correctFixVersion = null;
     // If the base branch is a release branch with a matching Jira fixVersion, use the release branch number as the correct fixVersion
     if (PR_BASE_BRANCH.includes('release')) {
-      const releaseBranchNumber = PR_BASE_BRANCH.split('-').pop();
+      const releaseBranchNumber = PR_BASE_BRANCH.match(/\d+\.\d+\.\d+$/);
       if (allJiraFixVersions.includes(releaseBranchNumber)) {
         correctFixVersion = releaseBranchNumber;
         console.log('Base branch is a release branch with a matching Jira fixVersion. Using the release branch number as the correct fixVersion.')
