@@ -121,6 +121,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # Fetch all history so that we can get the release branch names
+          working-directory: current_repo
 
       - name: Get release branch names
         id: get_release_branch_names
@@ -128,9 +129,14 @@ jobs:
           all_branches=$(git branch -r --format='%(refname:short)')
           release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
           echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
+        working-directory: current_repo
 
       - name: Log release branch names
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
+
+      # Prevent dependency conflicts
+      - name: Delete current_repo
+        run: rm -rf current_repo
 
       - name: Checkout code from doctor-power/workflows repo
         uses: actions/checkout@v3
@@ -144,7 +150,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install node-fetch dotenv
+        run: npm install node-fetch
         working-directory: reusable
 
       - name: Run Release Version script
