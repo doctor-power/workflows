@@ -134,6 +134,9 @@ jobs:
       - name: Log release branch names
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
+      - name: List files in current_repo
+        run: ls -la current_repo
+
       # Prevent dependency conflicts
       - name: Delete current_repo
         run: rm -rf current_repo
