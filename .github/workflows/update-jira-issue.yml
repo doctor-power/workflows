@@ -114,8 +114,7 @@ jobs:
           else
             echo "Invalid PR title format. It should start with a Jira issue key."
             echo "👇👇👇👇👇 MANUAL FIX NEEDED 👇👇👇👇👇"
-            echo "Unfortunately, fixing the PR title and re-running the action won't work,"
-            echo "so you'll need to manually update the Jira issue."
+            echo "Unfortunately, fixing the PR title and re-running the action won't work, so you'll need to manually update the Jira issue."
             exit 1
           fi
 
