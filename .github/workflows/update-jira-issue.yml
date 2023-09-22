@@ -105,18 +105,23 @@ jobs:
         run: |
           echo "JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}"
 
-      - name: Extract issue key from pull request title
-        id: extract_keys
-        run: | # Check if PR title starts with a Jira issue key before extracting keys
+      - name: Validate pull request title
+        id: validate_pr_title
+        run: |
           if [[ "${{ github.event.pull_request.title }}" =~ ^[A-Z]+-[0-9]+: ]]; then
-            echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_ENV
-            echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_ENV
+            echo "PR title is valid"
           else
             echo "Invalid PR title format. It should start with a Jira issue key."
             echo "👇👇👇👇👇 MANUAL FIX NEEDED 👇👇👇👇👇"
             echo "Unfortunately, fixing the PR title and re-running the action won't work, so you'll need to manually update the Jira issue."
             exit 1
           fi
+
+      - name: Extract issue key from pull request title
+        id: extract_keys
+        run: |
+          echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_ENV
+          echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_ENV
 
       - name: Log issue key and project key
         run: |
