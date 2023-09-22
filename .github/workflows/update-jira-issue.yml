@@ -107,9 +107,15 @@ jobs:
 
       - name: Extract issue key from pull request title
         id: extract_keys
-        run: |
-          echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
-          echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_OUTPUT
+        run: | # Check if PR title starts with a Jira issue key before extracting keys
+          if [[ "${{ github.event.pull_request.title }}" =~ ^[A-Z]+-[0-9]+: ]]; then
+            echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_ENV
+            echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_ENV
+          else
+            echo "Invalid PR title format. It should start with a Jira issue key."
+            echo "Update PR title and re-run this workflow."
+            exit 1
+          fi
 
       - name: Log issue key and project key
         run: |
@@ -133,9 +139,6 @@ jobs:
 
       - name: Log release branch names
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
-
-      - name: List files in current_repo
-        run: ls -la current_repo
 
       # Prevent dependency conflicts
       - name: Delete current_repo
