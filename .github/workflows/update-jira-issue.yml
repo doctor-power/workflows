@@ -9,11 +9,6 @@ on:
         required: true
       JIRA_API_TOKEN:
         required: true
-  workflow_dispatch:
-    inputs:
-      prNumber:
-        description: 'Pull Request Number'
-        required: true
 
 jobs:
   # On merge of Dependabot PR
@@ -110,24 +105,17 @@ jobs:
         run: |
           echo "JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}"
 
-      - name: Get PR Title if workflow was manually triggered
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          pr_number=${{ github.event.inputs.prNumber }}
-          pr_title=$(gh pr view https://github.com/$GITHUB_REPOSITORY/pull/$pr_number --json title -q '.title')
-          echo "PR Title: $pr_title"
-          echo "pr_title=$pr_title" >> $GITHUB_ENV
-
       - name: Extract issue key from pull request title
         id: extract_keys
         run: | # Check if PR title starts with a Jira issue key before extracting keys
-          if [[ "${{ github.event_name == 'workflow_dispatch' && env.pr_title || github.event.pull_request.title }}" =~ ^[A-Z]+-[0-9]+: ]]; then
+          if [[ "${{ github.event.pull_request.title }}" =~ ^[A-Z]+-[0-9]+: ]]; then
             echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_ENV
             echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_ENV
           else
             echo "Invalid PR title format. It should start with a Jira issue key."
             echo "👇👇👇👇👇 MANUAL FIX NEEDED 👇👇👇👇👇"
-            echo "Unfortunately, fixing the PR title and re-running the action won't work, so you'll need to manually update the Jira issue."
+            echo "Unfortunately, fixing the PR title and re-running the action won't work,"
+            echo "so you'll need to manually update the Jira issue."
             exit 1
           fi
 
