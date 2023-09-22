@@ -94,17 +94,6 @@ jobs:
     if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.merged == true # Dependabot is NOT the author & PR is merged
     runs-on: ubuntu-latest
     steps:
-      - name: Log in to Jira
-        uses: atlassian/gajira-login@v3
-        env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-
-      - name: Log JIRA_BASE_URL
-        run: |
-          echo "JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}"
-
       - name: Validate pull request title
         id: validate_pr_title
         run: |
@@ -116,6 +105,17 @@ jobs:
             echo "Unfortunately, fixing the PR title and re-running the action won't work, so you'll need to manually update the Jira issue."
             exit 1
           fi
+
+      - name: Log in to Jira
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+      - name: Log JIRA_BASE_URL
+        run: |
+          echo "JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}"
 
       - name: Extract issue key from pull request title
         id: extract_keys
