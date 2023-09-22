@@ -29,6 +29,7 @@ const fetchCurrentFixVersions = async () => {
 
 const fetchUnreleasedJiraFixVersions = async () => {
   const response = await fetch(`${JIRA_BASE_URL}/rest/api/3/project/${PROJECT_KEY}/version?status=unreleased&orderBy=name`, {
+  // const response = await fetch(`${JIRA_BASE_URL}/rest/api/3/project/${PROJECT_KEY}/versions`, {
     method: 'GET',
     headers: {
       'Authorization': `Basic ${Buffer.from(
@@ -39,7 +40,9 @@ const fetchUnreleasedJiraFixVersions = async () => {
   });
 
   const json = await response.json();
-  return json.map(fixVersion => fixVersion.name);
+  const values = json.values;
+  console.log('Unreleased Jira fixVersions:', values.map(fixVersion => fixVersion.name));
+  return values.map(fixVersion => fixVersion.name);
 };
 
 function sortVersionsDescending(versions) {
@@ -146,6 +149,8 @@ const fetchAndCompare = async () => {
       } else {
         console.error("Error updating fixVersion", await response.text());
       }
+    } else {
+      console.log('✅ Correct fixVersion is the same as the currently assigned fixVersion. No update needed.');
     }
   } catch (err) {
     console.error(err);
