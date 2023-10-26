@@ -28,7 +28,7 @@ on:
         required: true
       JIRA_API_TOKEN:
         required: true
-      READ_ONLY_ORG_TEAM_MEMBERS:
+      GITHUB_ADMIN_REPO_TOKEN:
         required: true
 
 jobs:
@@ -66,7 +66,7 @@ jobs:
         uses: dc-ag/auto-assign-reviewers-from-team@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          admin-repo-token: ${{ secrets.READ_ONLY_ORG_TEAM_MEMBERS }} # GitHub Personal Access Token that has 'repo' rights
+          admin-repo-token: ${{ secrets.GITHUB_ADMIN_REPO_TOKEN }} # GitHub Personal Access Token that has 'repo' rights
           team: ${{ inputs.github_team }}
           amount: 1 # Amount of reviewers to assign
           use-team-reviewer-settings: false # Set to true if you want to use the team's reviewer settings instead of a specific amount
