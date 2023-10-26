@@ -63,7 +63,7 @@ jobs:
 
       - name: Assign GH team member as reviewer # Assign a random member of the specified GitHub Org team as reviewer
         if: steps.skip.outcome == 'skipped'
-        uses: dc-ag/auto-assign-reviewers-from-team@v1
+        uses: dc-ag/auto-assign-reviewers-from-team@v1.3.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           admin-repo-token: ${{ secrets.ADMIN_REPO_TOKEN }} # GitHub Personal Access Token that has 'repo' rights
