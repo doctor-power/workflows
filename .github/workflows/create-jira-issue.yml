@@ -61,24 +61,26 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
-      - name: Get random github team member from specified team
+      - name: Assign GH team member as reviewer # Assign a random member of the specified GitHub Org team as reviewer
         if: steps.skip.outcome == 'skipped'
-        id: get_random_github_team_member
-        run: |
-          MEMBERS=$(curl -s -H "Authorization: token ${{ secrets.READ_ONLY_ORG_TEAM_MEMBERS }}" \
-          "https://api.github.com/orgs/doctor-power/teams/${{ inputs.github_team }}/members")
-          RANDOM_MEMBER=$(echo "$MEMBERS" | jq -r '.[] | .login' | shuf -n 1)
-          echo "random_team_member=$RANDOM_MEMBER" >> $GITHUB_OUTPUT
+        uses: dc-ag/auto-assign-reviewers-from-team@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          admin-repo-token: ${{ secrets.READ_ONLY_ORG_TEAM_MEMBERS }} # GitHub Personal Access Token that has 'repo' rights
+          team: ${{ inputs.github_team }}
+          amount: 1 # Amount of reviewers to assign
+          use-team-reviewer-settings: false # Set to true if you want to use the team's reviewer settings instead of a specific amount
+          ignore-branches-regex: "" # Regex to check branches. If matched the PR won't be assigned any reviewers via this workflow
 
-      - name: Log random github team member
+      - name: Get PR reviewer # To be used to assign Jira issue to the same person
         if: steps.skip.outcome == 'skipped'
-        run: echo "Random GitHub team member ${{ steps.get_random_github_team_member.outputs.random_team_member }}"
-
-      - name: Assign random github team member as reviewer
-        if: steps.skip.outcome == 'skipped'
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} \
-            --add-reviewer ${{ steps.get_random_github_team_member.outputs.random_team_member }}
+        id: get_reviewer
+        run: | # Use the first reviewer request (PR not yet reviewed), or if none, the first review (PR already reviewed)
+          reviewer_username=$(gh pr view ${{ github.event.pull_request.number }} --json reviewRequests --jq '.reviewRequests[0].login')
+          if [[ -z "$reviewer_username" ]]; then
+            reviewer_username=$(gh pr view ${{ github.event.pull_request.number }} --json reviews --jq '.reviews[0].author.login')
+          fi
+          echo "reviewer=$reviewer_username" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -102,7 +104,7 @@ jobs:
           body: ${{ github.event.pull_request.body }}
           prlink: ${{ github.event.pull_request._links.html.href }}
           labels: ${{ inputs.labels }}
-          assignee: ${{ steps.get_random_github_team_member.outputs.random_team_member }}
+          assignee: ${{ steps.get_reviewer.outputs.reviewer }}
           releaseBranches: ${{ steps.get_release_branch_names.outputs.release_branches }}
           githubJiraUserMap: ${{ vars.GH_JIRA_USER_MAP }}
 
