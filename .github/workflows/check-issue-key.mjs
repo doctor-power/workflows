@@ -41,6 +41,7 @@ if (issueKeysInTitle.length > 0) {
     if (IS_RELEASE_BRANCH) {
         console.log(`Release branch detected, and PR title starts with issue key(s): [${issueKeysInTitle.join(', ')}]`);
         console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
+        console.log(`::set-output name=jira_issue_key::${issueKeysInTitle[0]}`);
     } else {
         // If not a release branch, check if the PR title starts with the ISSUE_KEYS from the branch name
         const isExactMatch = issueKeysInTitle.every(key => ISSUE_KEYS.includes(key)) && issueKeysInTitle.length === ISSUE_KEYS.length;
