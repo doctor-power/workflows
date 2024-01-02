@@ -41,18 +41,18 @@ if (issueKeysInTitle.length > 0) {
     if (IS_RELEASE_BRANCH) {
         console.log(`Release branch detected, and PR title starts with issue key(s): [${issueKeysInTitle.join(', ')}]`);
         console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
-    }
-
-    // If not a release branch, check if the PR title starts with the ISSUE_KEYS from the branch name
-    const isExactMatch = issueKeysInTitle.every(key => ISSUE_KEYS.includes(key)) && issueKeysInTitle.length === ISSUE_KEYS.length;
-
-    if (isExactMatch) {
-        console.log(`PR title starts with the exact ISSUE_KEYS: [${issueKeysInTitle.join(', ')}]`);
-        console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
     } else {
-        console.log(`PR title contains different ISSUE_KEYS: [${issueKeysInTitle.join(', ')}]`);
-        console.log(`::set-output name=pr_title_starts_with_issue_key::false`);
-        console.log(`::set-output name=pr_title_starts_with_other_issue_key::true`);
+        // If not a release branch, check if the PR title starts with the ISSUE_KEYS from the branch name
+        const isExactMatch = issueKeysInTitle.every(key => ISSUE_KEYS.includes(key)) && issueKeysInTitle.length === ISSUE_KEYS.length;
+
+        if (isExactMatch) {
+            console.log(`PR title starts with the exact ISSUE_KEYS: [${issueKeysInTitle.join(', ')}]`);
+            console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
+        } else {
+            console.log(`PR title contains different ISSUE_KEYS: [${issueKeysInTitle.join(', ')}]`);
+            console.log(`::set-output name=pr_title_starts_with_issue_key::false`);
+            console.log(`::set-output name=pr_title_starts_with_other_issue_key::true`);
+        }
     }
 } else {
     console.log(`PR title: ${CURRENT_PR_TITLE}`);
