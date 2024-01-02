@@ -12,7 +12,6 @@ const regex = new RegExp(`(${PROJECT_KEY}-\\d+)(\\+${PROJECT_KEY}-\\d+)*`, 'g');
 
 if (IS_RELEASE_BRANCH) {
     console.log("Release branch detected. Skipping check for issue key in branch name.");
-    return;
 } else {
     const matches = BRANCH_NAME.match(regex);
     if (matches && matches[0]) {
@@ -42,7 +41,6 @@ if (issueKeysInTitle.length > 0) {
     if (IS_RELEASE_BRANCH) {
         console.log(`Release branch detected, and PR title starts with issue key(s): [${issueKeysInTitle.join(', ')}]`);
         console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
-        return;
     }
 
     // If not a release branch, check if the PR title starts with the ISSUE_KEYS from the branch name
