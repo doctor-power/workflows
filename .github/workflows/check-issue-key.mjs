@@ -4,12 +4,13 @@ dotenv.config();
 const BRANCH_NAME = process.env.BRANCH_NAME;
 const PROJECT_KEY = process.env.PROJECT_KEY;
 const CURRENT_PR_TITLE = process.env.CURRENT_PR_TITLE;
+const IS_RELEASE_BRANCH = BRANCH_NAME.startsWith('release');
 
 /* Extract the issue keys from the branch name */
 let ISSUE_KEYS;
 const regex = new RegExp(`(${PROJECT_KEY}-\\d+)(\\+${PROJECT_KEY}-\\d+)*`, 'g');
 
-if (BRANCH_NAME == 'release') {
+if (IS_RELEASE_BRANCH) {
     console.log("Release branch detected. Skipping check for issue key in branch name.");
     return;
 } else {
@@ -38,7 +39,7 @@ if (BRANCH_NAME == 'release') {
 const issueKeysInTitle = (CURRENT_PR_TITLE.match(regex) || []).flatMap(key => key.split('+'));
 
 if (issueKeysInTitle.length > 0) {
-    if (BRANCH_NAME == 'release') {
+    if (IS_RELEASE_BRANCH) {
         console.log(`Release branch detected, and PR title starts with issue key(s): [${issueKeysInTitle.join(', ')}]`);
         console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
         return;
