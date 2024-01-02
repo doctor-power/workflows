@@ -53,9 +53,10 @@ jobs:
           steps.skip.outcome == 'skipped' &&
           steps.run_script.outputs.jira_issue_key == ''
         run: |
-          echo "ERROR: Jira issue key not found in PR branch name."
-          echo "Branches must be named with the Jira issue key at the start."
+          echo "ERROR: Jira issue key not found."
+          echo "Branches must be named with the Jira issue key at the start. (*)"
           echo "For example: WA-42/my-branch-name"
+          echo "  (*) Or, if this is a release branch, please manually add the issue key to the PR title."
           exit 1
 
       # If steps.run_script.outputs.pr_title_starts_with_other_issue_key = 'true', exit with failure
