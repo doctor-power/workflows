@@ -45,6 +45,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # Fetch all history so that we can get the release branch names
+          path: current_repo
 
       - name: Get release branch names
         id: get_release_branch_names
@@ -52,14 +53,19 @@ jobs:
           all_branches=$(git branch -r --format='%(refname:short)')
           release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
           echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
+        working-directory: current_repo
 
       - name: Log release branch names
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
-      - name: Checkout code from doctor-power/workflows repo
+      # Prevent dependency conflicts
+      - name: Delete current_repo
+        run: rm -rf current_repo
+
+      - name: Checkout code from macuject/.github repo
         uses: actions/checkout@v3
         with:
-          repository: doctor-power/workflows
+          repository: macuject/.github
           path: reusable
 
       - name: Setup Node.js
@@ -68,7 +74,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install node-fetch
+        run: npm install node-fetch dotenv
         working-directory: reusable
 
       - name: Run script
@@ -80,6 +86,7 @@ jobs:
           ISSUE_KEY: ${{ steps.extract_keys.outputs.issue_key }}
           PROJECT_KEY: ${{ steps.extract_keys.outputs.project_key }}
           GITHUB_RELEASE_BRANCHES: ${{ steps.get_release_branch_names.outputs.release_branches }}
+          PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
 
       - name: Transition Jira ticket to Done
         uses: atlassian/gajira-transition@v3
@@ -97,7 +104,9 @@ jobs:
       - name: Validate pull request title
         id: validate_pr_title
         run: |
-          if [[ "${{ github.event.pull_request.title }}" =~ ^[A-Z]+-[0-9]+: ]]; then
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          ESCAPED_PR_TITLE=$(echo $PR_TITLE | sed 's/"/\\"/g')
+          if [[ "$ESCAPED_PR_TITLE" =~ ^\[?([A-Z]{2,4}-[0-9]{2,5}(,[[:space:]])?)+\]?:|^([A-Z]{2,4}-[0-9]{2,5}): ]]; then
             echo "PR title is valid"
           else
             echo "Invalid PR title format. It should start with a Jira issue key."
@@ -120,8 +129,8 @@ jobs:
       - name: Extract issue key from pull request title
         id: extract_keys
         run: |
-          echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
-          echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_OUTPUT
+          echo "issue_key=$(echo '${{ github.event.pull_request.title }}' | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+          echo "project_key=$(echo '${{ github.event.pull_request.title }}' | cut -d '-' -f1)" >> $GITHUB_OUTPUT
 
       - name: Log issue key and project key
         run: |
@@ -162,7 +171,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install node-fetch
+        run: npm install node-fetch dotenv
         working-directory: reusable
 
       - name: Run Release Version script
