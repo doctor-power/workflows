@@ -1,5 +1,3 @@
-// To run locally, update .env then: `node ./.github/workflows/comment-on-jira-issue.mjs`
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -8,7 +6,6 @@ const JIRA_USER_EMAIL = process.env.JIRA_USER_EMAIL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
 const PR_TITLE = process.env.PR_TITLE;
 let PR_BODY = process.env.PR_BODY;
-const IMAGE_URL = 'https://placehold.co/600x400';
 
 import fetch from 'node-fetch';
 import fs from 'fs';
@@ -119,10 +116,12 @@ const processTableLines = (lines) => {
   };
 }
 
-// Process PR_BODY content
+// Process PR_BODY content and handle image links
 let i = 0;
 const contentItems = [];
 const lines = PR_BODY.split('\n');
+const imageLinks = [];
+
 while (i < lines.length) {
     let line = lines[i];
 
@@ -187,17 +186,27 @@ while (i < lines.length) {
 
                     // If it's a URL match.
                     if (match[1] && match[1].startsWith('http')) {
-                        content.push({
-                            "type": "text",
-                            "text": match[1],
-                            "marks": [{
-                                "type": "link",
-                                "attrs": {
-                                    "href": match[1],
-                                    "title": match[1]
-                                }
-                            }]
-                        });
+                        // If it's an image link we care about
+                        // if (match[1].startsWith('https://placehold.co/')) {
+                        if (match[1].startsWith('https://github.com/macuject/web/assets/')) {
+                            const imageName = `image_${imageLinks.length + 1}`.padStart(7, '0');
+                            // If there's a closing parenthesis, remove it.
+                            const url = match[1].endsWith(')') ? match[1].slice(0, -1) : match[1];
+                            imageLinks.push({ url: url, name: imageName });
+                            content.push(createContentItem(`See attachment "${imageName}"`));
+                        } else {
+                            content.push({
+                                "type": "text",
+                                "text": match[1],
+                                "marks": [{
+                                    "type": "link",
+                                    "attrs": {
+                                        "href": match[1],
+                                        "title": match[1]
+                                    }
+                                }]
+                            });
+                        }
                     }
                     // If it's a bold match.
                     else if (match[1]) {
@@ -264,14 +273,23 @@ const commentOnJiraIssue = async () => {
 }
 
 const downloadImage = async (url, dest) => {
-  const response = await fetch(url);
+  const actualImageUrl = await getRedirectedUrl(url);
+  const response = await fetch(actualImageUrl);
   if (!response.ok) {
     throw new Error(`Failed to download image: ${response.statusText}`);
   }
   const buffer = await response.buffer();
   await fs.promises.writeFile(dest, buffer);
   console.log(`Image downloaded to ${dest}`);
-}
+};
+
+const getRedirectedUrl = async (url) => {
+  const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+  if (!response.ok) {
+    throw new Error(`Failed to get redirected URL: ${response.statusText}`);
+  }
+  return response.url;
+};
 
 const uploadImageToJira = async (issueKey, filePath) => {
   const form = new FormData();
@@ -299,12 +317,15 @@ const uploadImageToJira = async (issueKey, filePath) => {
 };
 
 const handleImageDownloadAndUpload = async () => {
-  const tempImagePath = path.join(__dirname, 'temp_image.jpg');
-  await downloadImage(IMAGE_URL, tempImagePath);
   for (const ISSUE_KEY of ISSUE_KEYS) {
-    await uploadImageToJira(ISSUE_KEY, tempImagePath);
+    for (const [index, { url, name }] of imageLinks.entries()) {
+      console.log(`url: ${url}, name: ${name}`)
+      const tempImagePath = path.join(__dirname, `${name}.jpg`);
+      await downloadImage(url, tempImagePath);
+      await uploadImageToJira(ISSUE_KEY, tempImagePath);
+      await fs.promises.unlink(tempImagePath); // Clean up the temp image
+    }
   }
-  await fs.promises.unlink(tempImagePath); // Clean up the temp image
 }
 
 commentOnJiraIssue()
