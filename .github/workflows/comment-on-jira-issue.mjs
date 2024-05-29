@@ -1,3 +1,5 @@
+// To run locally, update .env then: `node ./.github/workflows/comment-on-jira-issue.mjs`
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -6,8 +8,17 @@ const JIRA_USER_EMAIL = process.env.JIRA_USER_EMAIL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
 const PR_TITLE = process.env.PR_TITLE;
 let PR_BODY = process.env.PR_BODY;
+const IMAGE_URL = 'https://placehold.co/600x400';
 
 import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import FormData from 'form-data';
+
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Extract the issue keys from the start of PR_TITLE
 const ISSUE_KEYS = PR_TITLE.split(':')[0].match(/[A-Z]+-\d+/g);
@@ -252,4 +263,50 @@ const commentOnJiraIssue = async () => {
   }
 }
 
-commentOnJiraIssue();
+const downloadImage = async (url, dest) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download image: ${response.statusText}`);
+  }
+  const buffer = await response.buffer();
+  await fs.promises.writeFile(dest, buffer);
+  console.log(`Image downloaded to ${dest}`);
+}
+
+const uploadImageToJira = async (issueKey, filePath) => {
+  const form = new FormData();
+  const fileStream = fs.createReadStream(filePath);
+  form.append('file', fileStream);
+
+  const response = await fetch(`${JIRA_BASE_URL}/rest/api/3/issue/${issueKey}/attachments`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${Buffer.from(
+        `${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}`
+      ).toString('base64')}`,
+      'X-Atlassian-Token': 'no-check',
+      ...form.getHeaders() // Get the headers for the form data
+    },
+    body: form
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload image to Jira: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log(`Image uploaded to Jira issue ${issueKey}: ${data[0].content}`);
+};
+
+const handleImageDownloadAndUpload = async () => {
+  const tempImagePath = path.join(__dirname, 'temp_image.jpg');
+  await downloadImage(IMAGE_URL, tempImagePath);
+  for (const ISSUE_KEY of ISSUE_KEYS) {
+    await uploadImageToJira(ISSUE_KEY, tempImagePath);
+  }
+  await fs.promises.unlink(tempImagePath); // Clean up the temp image
+}
+
+commentOnJiraIssue()
+  .then(handleImageDownloadAndUpload)
+  .catch((error) => console.error("Error in process:", error));
