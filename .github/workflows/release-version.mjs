@@ -78,7 +78,8 @@ const fetchAndCompare = async () => {
     let correctFixVersion = null;
     if (PR_BASE_BRANCH.includes('release')) {
       // If the base branch is a release branch with a matching Jira fixVersion, use the release branch number as the correct fixVersion
-      const releaseBranchNumber = PR_BASE_BRANCH.match(/\d+\.\d+\.\d+$/)[0];
+      // e.g. if the base branch is release/1.2, and there is a Jira fixVersion 1.2.0, use 1.2.0 as the correct fixVersion
+      const releaseBranchNumber = PR_BASE_BRANCH.match(/\d+\.\d+$/)[0] + '.0';
       if (unreleasedJiraFixVersions.includes(releaseBranchNumber)) {
         correctFixVersion = releaseBranchNumber;
         console.log('Base branch is a release branch with a matching unreleased Jira fixVersion. Using the release branch number as the correct fixVersion.')
@@ -93,7 +94,8 @@ const fetchAndCompare = async () => {
     }  else {
       // Get the release branch numbers from the Github release branches
       github_release_branches = github_release_branches.split(',').map(item => {
-        return item.trim().substring(item.length - 5);
+        // Release branch names ommit the patch version number, so add it back in
+        return item.trim().substring(item.length - 4) + '.0';
       })
       const githubReleaseBranchNumbers = sortVersionsDescending(github_release_branches);
 
@@ -148,12 +150,14 @@ const fetchAndCompare = async () => {
         console.log("✅ Issue updated with fixVersion:", correctFixVersion);
       } else {
         console.error("Error updating fixVersion", await response.text());
+        process.exit(1);
       }
     } else {
       console.log('✅ Correct fixVersion is the same as the currently assigned fixVersion. No update needed.');
     }
   } catch (err) {
     console.error(err);
+    process.exit(1);
   }
 };
 

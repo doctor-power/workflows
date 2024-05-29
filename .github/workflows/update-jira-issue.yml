@@ -148,7 +148,7 @@ jobs:
         id: get_release_branch_names
         run: |
           all_branches=$(git branch -r --format='%(refname:short)')
-          release_branches=$(echo "$all_branches" | grep -E 'release/.*0$' | tr '\n' ',' | sed 's/,$//')
+          release_branches=$(echo "$all_branches" | grep -E 'release/[0-9]+\.[0-9]+$' | tr '\n' ',' | sed 's/,$//')
           echo "release_branches=$release_branches" >> $GITHUB_OUTPUT
         working-directory: current_repo
 

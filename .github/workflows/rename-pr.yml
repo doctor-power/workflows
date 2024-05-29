@@ -72,7 +72,7 @@ jobs:
       - name: Checkout code from current repo
         if: >-
           steps.skip.outcome == 'skipped' &&
-          steps.run_script.outputs.pr_title_starts_with_issue_key == 'false'
+          steps.run_script.outputs.pr_title_valid == 'false'
         uses: actions/checkout@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,7 +80,7 @@ jobs:
       - name: Rename PR
         if: >-
           steps.skip.outcome == 'skipped' &&
-          steps.run_script.outputs.pr_title_starts_with_issue_key == 'false'
+          steps.run_script.outputs.pr_title_valid == 'false'
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.run_script.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"

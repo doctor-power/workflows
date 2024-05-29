@@ -38,9 +38,13 @@ if (IS_RELEASE_BRANCH) {
 const issueKeysInTitle = (CURRENT_PR_TITLE.match(regex) || []).flatMap(key => key.split('+'));
 
 if (issueKeysInTitle.length > 0) {
-    if (IS_RELEASE_BRANCH) {
+    if (!CURRENT_PR_TITLE.startsWith(`${issueKeysInTitle.join('+')}:`)) {
+        // if issueKeysInTitle is not followed by a colon in CURRENT_PR_TITLE, pr_title_valid = false
+        console.log(`PR title does not start with issue key(s) followed by a colon. PR title: ${CURRENT_PR_TITLE});]`);
+        console.log(`::set-output name=pr_title_valid::false`);
+    } else if (IS_RELEASE_BRANCH) {
         console.log(`Release branch detected, and PR title starts with issue key(s): [${issueKeysInTitle.join(', ')}]`);
-        console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
+        console.log(`::set-output name=pr_title_valid::true`);
         console.log(`::set-output name=jira_issue_key::${issueKeysInTitle[0]}`);
     } else {
         // If not a release branch, check if the PR title starts with the ISSUE_KEYS from the branch name
@@ -48,15 +52,15 @@ if (issueKeysInTitle.length > 0) {
 
         if (isExactMatch) {
             console.log(`PR title starts with the exact ISSUE_KEYS: [${issueKeysInTitle.join(', ')}]`);
-            console.log(`::set-output name=pr_title_starts_with_issue_key::true`);
+            console.log(`::set-output name=pr_title_valid::true`);
         } else {
             console.log(`PR title contains different ISSUE_KEYS: [${issueKeysInTitle.join(', ')}]`);
-            console.log(`::set-output name=pr_title_starts_with_issue_key::false`);
+            console.log(`::set-output name=pr_title_valid::false`);
             console.log(`::set-output name=pr_title_starts_with_other_issue_key::true`);
         }
     }
 } else {
     console.log(`PR title: ${CURRENT_PR_TITLE}`);
     console.log(`PR title does not start with any of the ISSUE_KEYS: ${ISSUE_KEYS && ISSUE_KEYS.length > 0 ? `[${ISSUE_KEYS.join(', ')}]` : ''}`);
-    console.log(`::set-output name=pr_title_starts_with_issue_key::false`);
+    console.log(`::set-output name=pr_title_valid::false`);
 }
