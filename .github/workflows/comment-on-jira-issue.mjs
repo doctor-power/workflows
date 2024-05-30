@@ -122,7 +122,7 @@ const processTableLines = (lines) => {
 
 // Process PR_BODY content and handle image links
 let i = 0;
-const contentItems = [];
+let contentItems = [];
 const lines = PR_BODY.split('\n');
 const imageLinks = [];
 
@@ -234,7 +234,7 @@ while (i < lines.length) {
     }
 }
 
-const bodyData = JSON.stringify({
+let bodyData = JSON.stringify({
   "body": {
     "content": contentItems,
     "type": "doc",
@@ -319,19 +319,96 @@ const uploadImageToJira = async (issueKey, filePath) => {
 
   const data = await response.json();
   console.log(`Image uploaded to Jira issue ${issueKey}: ${data[0].content}`);
+  return data[0].content;
 };
 
 const handleImageDownloadAndUpload = async () => {
+  const uploadLinks = {};
+
   for (const ISSUE_KEY of ISSUE_KEYS) {
+    uploadLinks[ISSUE_KEY] = [];
     for (const { url, name } of imageLinks) {
       const tempImagePath = path.join(__dirname, `${name}.jpg`);
       await downloadImage(url, tempImagePath);
-      await uploadImageToJira(ISSUE_KEY, tempImagePath);
+      const downloadLink = await uploadImageToJira(ISSUE_KEY, tempImagePath);
       await fs.promises.unlink(tempImagePath); // Clean up the temp image
+
+      // Collect the download link for each image
+      uploadLinks[ISSUE_KEY].push({ name, downloadLink });
     }
   }
-}
 
-commentOnJiraIssue()
-  .then(handleImageDownloadAndUpload)
+  // Update the contentItems with the download links
+  contentItems = contentItems.map(item => {
+    if (item.type === 'paragraph') {
+      uploadLinks[ISSUE_KEYS[0]].forEach(({ name, downloadLink }) => {
+        if (item.content[0].text.includes(`See attachment "${name}"`)) {
+          item.content = [{
+            "type": "text",
+            "text": `See attachment "${name}" above or `,
+            "marks": []
+          }, {
+            "type": "text",
+            "text": "click here",
+            "marks": [{
+              "type": "link",
+              "attrs": {
+                "href": downloadLink,
+                "title": downloadLink
+              }
+            }]
+          }, {
+            "type": "text",
+            "text": " to download the image.",
+            "marks": []
+          }];
+        }
+      });
+    }
+    return item;
+  });
+
+  // Recreate the bodyData with the updated contentItems
+  bodyData = JSON.stringify({
+    "body": {
+      "content": contentItems,
+      "type": "doc",
+      "version": 1
+    }
+  });
+
+  // Post the updated comment with download links
+  await postCommentOnJiraIssue(bodyData);
+};
+
+const postCommentOnJiraIssue = async (bodyData) => {
+  try {
+    for (const ISSUE_KEY of ISSUE_KEYS) {
+      const response = await fetch(`${JIRA_BASE_URL}/rest/api/3/issue/${ISSUE_KEY}/comment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(
+            `${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}`
+          ).toString('base64')}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: bodyData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Response: ${response.status} ${response.statusText}`);
+      }
+
+      console.log(`Response: ${response.status} ${response.statusText}`);
+      const text = await response.text();
+      console.log(text);
+    }
+  } catch (error) {
+    console.error('Failed to add comment on Jira issue:', error);
+    process.exit(1);
+  }
+};
+
+handleImageDownloadAndUpload()
   .catch((error) => console.error("Error in process:", error));
