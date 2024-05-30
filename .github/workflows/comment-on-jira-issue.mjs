@@ -296,6 +296,7 @@ const getRedirectedUrl = async (url) => {
   // if (!response.ok) {
   //   throw new Error(`Failed to get redirected URL: ${response.statusText}`);
   // }
+  console.log(`#### GITHUB_TOKEN: ${GITHUB_TOKEN}`);
   return response.url;
 };
 
