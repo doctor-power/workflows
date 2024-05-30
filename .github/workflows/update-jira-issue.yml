@@ -9,8 +9,6 @@ on:
         required: true
       JIRA_API_TOKEN:
         required: true
-      ADMIN_REPO_TOKEN:
-        required: true
 
 jobs:
   # On merge of Dependabot PR
@@ -196,3 +194,4 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
           CLASSIC_WORKFLOW_TOKEN: ${{ secrets.CLASSIC_WORKFLOW_TOKEN }}
+          REPO_NAME: ${{ github.event.repository.name }}
