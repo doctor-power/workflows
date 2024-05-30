@@ -27,6 +27,9 @@ PR_BODY = PR_BODY.split('## Checklist')[0];
 // Replace <img> tags with the plain url
 PR_BODY = PR_BODY.replace(/<img[^>]*src="([^"]*)"[^>]*>/g, '$1');
 
+// Replace ![]() with the plain url
+PR_BODY = PR_BODY.replace(/!\[[^\]]*\]\(([^\)]*)\)/g, '$1');
+
 const createContentItem = (text, type = "text", marks = []) => ({
   "text": text,
   "type": type,
@@ -193,8 +196,8 @@ while (i < lines.length) {
                         if (match[1].startsWith('https://github.com/doctor-power/github-actions/assets/')) {
                             const imageName = `image_${imageLinks.length + 1}`.padStart(7, '0');
                             // If there's a closing parenthesis, remove it.
-                            const url = match[1].endsWith(')') ? match[1].slice(0, -1) : match[1];
-                            imageLinks.push({ url: url, name: imageName });
+                            // const url = match[1].endsWith(')') ? match[1].slice(0, -1) : match[1];
+                            imageLinks.push({ url: match[1], name: imageName });
                             content.push(createContentItem(`See attachment "${imageName}"`));
                         } else {
                             content.push({
@@ -293,9 +296,6 @@ const getRedirectedUrl = async (url) => {
     },
     redirect: 'follow'
   });
-  // if (!response.ok) {
-  //   throw new Error(`Failed to get redirected URL: ${response.statusText}`);
-  // }
   console.log(`#### ADMIN_REPO_TOKEN: ${ADMIN_REPO_TOKEN}`);
   return response.url;
 };
