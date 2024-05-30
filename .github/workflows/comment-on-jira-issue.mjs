@@ -4,7 +4,7 @@ dotenv.config();
 const JIRA_BASE_URL = process.env.JIRA_BASE_URL;
 const JIRA_USER_EMAIL = process.env.JIRA_USER_EMAIL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const ADMIN_REPO_TOKEN = process.env.ADMIN_REPO_TOKEN;
 const PR_TITLE = process.env.PR_TITLE;
 let PR_BODY = process.env.PR_BODY;
 
@@ -289,14 +289,14 @@ const getRedirectedUrl = async (url) => {
   const response = await fetch(url, {
     method: 'HEAD',
     headers: {
-      'Authorization': `token ${GITHUB_TOKEN}`
+      'Authorization': `token ${ADMIN_REPO_TOKEN}`
     },
     redirect: 'follow'
   });
   // if (!response.ok) {
   //   throw new Error(`Failed to get redirected URL: ${response.statusText}`);
   // }
-  console.log(`#### GITHUB_TOKEN: ${GITHUB_TOKEN}`);
+  console.log(`#### ADMIN_REPO_TOKEN: ${ADMIN_REPO_TOKEN}`);
   return response.url;
 };
 
