@@ -190,7 +190,7 @@ while (i < lines.length) {
                         // If it's an image link we care about
                         // if (match[1].startsWith('https://placehold.co/')) {
                           //FIXME:
-                        if (match[1].startsWith('https://github.com/macuject/web/assets/')) {
+                        if (match[1].startsWith('https://github.com/drpower/github-actions/assets/')) {
                             const imageName = `image_${imageLinks.length + 1}`.padStart(7, '0');
                             // If there's a closing parenthesis, remove it.
                             const url = match[1].endsWith(')') ? match[1].slice(0, -1) : match[1];
