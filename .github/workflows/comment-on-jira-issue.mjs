@@ -293,9 +293,9 @@ const getRedirectedUrl = async (url) => {
     },
     redirect: 'follow'
   });
-  if (!response.ok) {
-    throw new Error(`Failed to get redirected URL: ${response.statusText}`);
-  }
+  // if (!response.ok) {
+  //   throw new Error(`Failed to get redirected URL: ${response.statusText}`);
+  // }
   return response.url;
 };
 
