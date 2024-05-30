@@ -327,7 +327,7 @@ const uploadImageToJira = async (issueKey, filePath) => {
 const handleImageDownloadAndUpload = async () => {
   for (const ISSUE_KEY of ISSUE_KEYS) {
     for (const { url, name } of imageLinks) {
-      const tempImagePath = path.join(__dirname, `temp_image_${name}.jpg`);
+      const tempImagePath = path.join(__dirname, `${name}.jpg`);
       await downloadImage(url, tempImagePath);
       await uploadImageToJira(ISSUE_KEY, tempImagePath);
       await fs.promises.unlink(tempImagePath); // Clean up the temp image
