@@ -4,6 +4,7 @@ dotenv.config();
 const JIRA_BASE_URL = process.env.JIRA_BASE_URL;
 const JIRA_USER_EMAIL = process.env.JIRA_USER_EMAIL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const PR_TITLE = process.env.PR_TITLE;
 let PR_BODY = process.env.PR_BODY;
 
@@ -188,6 +189,7 @@ while (i < lines.length) {
                     if (match[1] && match[1].startsWith('http')) {
                         // If it's an image link we care about
                         // if (match[1].startsWith('https://placehold.co/')) {
+                          //FIXME:
                         if (match[1].startsWith('https://github.com/macuject/web/assets/')) {
                             const imageName = `image_${imageLinks.length + 1}`.padStart(7, '0');
                             // If there's a closing parenthesis, remove it.
@@ -284,7 +286,13 @@ const downloadImage = async (url, dest) => {
 };
 
 const getRedirectedUrl = async (url) => {
-  const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+  const response = await fetch(url, {
+    method: 'HEAD',
+    headers: {
+      'Authorization': `token ${GITHUB_TOKEN}`
+    },
+    redirect: 'follow'
+  });
   if (!response.ok) {
     throw new Error(`Failed to get redirected URL: ${response.statusText}`);
   }
@@ -318,9 +326,8 @@ const uploadImageToJira = async (issueKey, filePath) => {
 
 const handleImageDownloadAndUpload = async () => {
   for (const ISSUE_KEY of ISSUE_KEYS) {
-    for (const [index, { url, name }] of imageLinks.entries()) {
-      console.log(`url: ${url}, name: ${name}`)
-      const tempImagePath = path.join(__dirname, `${name}.jpg`);
+    for (const { url, name } of imageLinks) {
+      const tempImagePath = path.join(__dirname, `temp_image_${name}.jpg`);
       await downloadImage(url, tempImagePath);
       await uploadImageToJira(ISSUE_KEY, tempImagePath);
       await fs.promises.unlink(tempImagePath); // Clean up the temp image
