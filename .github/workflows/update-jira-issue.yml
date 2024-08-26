@@ -29,11 +29,18 @@ jobs:
         run: |
           echo "JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}"
 
-      - name: Extract issue key from pull request title
+      - name: Extract issue key and project key from pull request title
         id: extract_keys
         run: |
-          echo "issue_key=$(echo ${{ github.event.pull_request.title }} | cut -d ':' -f1)" >> $GITHUB_OUTPUT
-          echo "project_key=$(echo ${{ github.event.pull_request.title }} | cut -d '-' -f1)" >> $GITHUB_OUTPUT
+          title="${{ github.event.pull_request.title }}"
+          # Extract issue key (first part before the first colon)
+          issue_key=$(echo "$title" | cut -d ':' -f1)
+
+          # Extract project key (first part before the first '-') and remove leading '[' if present (e.g. '[WA-42, WA-23]')
+          project_key=$(echo "$issue_key" | cut -d '-' -f1 | sed 's/^\[//')
+
+          echo "issue_key=$issue_key" >> $GITHUB_OUTPUT
+          echo "project_key=$project_key" >> $GITHUB_OUTPUT
 
       - name: Log issue key and project key
         run: |
@@ -62,10 +69,10 @@ jobs:
       - name: Delete current_repo
         run: rm -rf current_repo
 
-      - name: Checkout code from macuject/.github repo
+      - name: Checkout code from doctor-power/workflows repo
         uses: actions/checkout@v3
         with:
-          repository: macuject/.github
+          repository: doctor-power/workflows
           path: reusable
 
       - name: Setup Node.js
@@ -74,7 +81,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install node-fetch dotenv
+        run: npm install node-fetch dotenv form-data
         working-directory: reusable
 
       - name: Run script
@@ -87,12 +94,6 @@ jobs:
           PROJECT_KEY: ${{ steps.extract_keys.outputs.project_key }}
           GITHUB_RELEASE_BRANCHES: ${{ steps.get_release_branch_names.outputs.release_branches }}
           PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
-
-      - name: Transition Jira ticket to Done
-        uses: atlassian/gajira-transition@v3
-        with:
-          issue: ${{ steps.extract_keys.outputs.issue_key }}
-          transition: Done
 
   # On merge of non-Dependabot PR
   # - Check fixVersion is set correctly, and if not, update it
@@ -171,7 +172,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install node-fetch dotenv
+        run: npm install node-fetch dotenv form-data
         working-directory: reusable
 
       - name: Run Release Version script
@@ -193,5 +194,5 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
-          CLASSIC_WORKFLOW_TOKEN: ${{ secrets.CLASSIC_WORKFLOW_TOKEN }}
+          ORG_TEAM_MEMBERS: ${{ secrets.ORG_TEAM_MEMBERS }} # GitHub Personal Access Token that has 'repo' and 'workflow' rights
           REPO_NAME: ${{ github.event.repository.name }}

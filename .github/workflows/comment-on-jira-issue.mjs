@@ -4,7 +4,7 @@ dotenv.config();
 const JIRA_BASE_URL = process.env.JIRA_BASE_URL;
 const JIRA_USER_EMAIL = process.env.JIRA_USER_EMAIL;
 const JIRA_API_TOKEN = process.env.JIRA_API_TOKEN;
-const CLASSIC_WORKFLOW_TOKEN = process.env.CLASSIC_WORKFLOW_TOKEN;
+const ORG_TEAM_MEMBERS = process.env.ORG_TEAM_MEMBERS;
 const REPO_NAME = process.env.REPO_NAME;
 const PR_TITLE = process.env.PR_TITLE;
 let PR_BODY = process.env.PR_BODY;
@@ -192,7 +192,7 @@ while (i < lines.length) {
                     // If it's a URL match.
                     if (match[1] && match[1].startsWith('http')) {
                         // If it's an image uploaded to the PR description
-                        if (match[1].startsWith(`https://github.com/doctor-power/${REPO_NAME}/assets/`)) {
+                        if (match[1].startsWith(`https://github.com/user-attachments/assets/`)) {
                             const imageName = `image_${String(imageLinks.length + 1).padStart(3, '0')}`;
                             imageLinks.push({ url: match[1], name: imageName });
                             content.push(createContentItem(`See attachment "${imageName}"`));
@@ -290,7 +290,7 @@ const getRedirectedUrl = async (url) => {
   const response = await fetch(url, {
     method: 'HEAD',
     headers: {
-      'Authorization': `token ${CLASSIC_WORKFLOW_TOKEN}`
+      'Authorization': `token ${ORG_TEAM_MEMBERS}`
     },
     redirect: 'follow'
   });
