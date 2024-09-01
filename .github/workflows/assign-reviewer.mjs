@@ -35,18 +35,13 @@ async function run() {
       return;
     }
 
-    // const members = await octokit.rest.teams.listMembersInOrg({
-    //   org: ghOrg,
-    //   team_slug: team,
-    // });
-
-    const members = await octokit.request(`GET /orgs/${ghOrg}/teams/${team}/members`, {
+    // Get all members of the team
+    const membersResponse = await octokit.rest.teams.listMembersInOrg({
       org: ghOrg,
       team_slug: team,
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
-    })
+    });
+
+    const members = membersResponse.data;
 
     let memberNames = members.data.map((a) => a.login);
 
