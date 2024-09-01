@@ -14,6 +14,8 @@ async function run() {
 
     const issue = github.context.issue;
 
+    console.log("team: ", team);
+
     if (!issue || !issue.number) {
       console.log("No pull request context, skipping!");
       return;
