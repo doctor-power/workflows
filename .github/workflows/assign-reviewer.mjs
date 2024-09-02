@@ -50,7 +50,7 @@ async function run() {
     //   }
     // })
 
-    const members = async () => {
+    const getMembers = async () => {
       const response = await fetch(`https://api.github.com/orgs/${ghOrg}/teams/${team}/members`, {
         method: 'GET',
         headers: {
@@ -59,6 +59,8 @@ async function run() {
       });
       return response.json();
     }
+
+    const members = await getMembers();
 
     console.log(`members: ${members}`);
 
