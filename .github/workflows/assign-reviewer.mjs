@@ -6,6 +6,7 @@ import * as github from "@actions/github";
 async function run() {
   try {
     const repoToken = process.env.GITHUB_TOKEN;
+    const ORG_TEAM_MEMBERS = process.env.ORG_TEAM_MEMBERS;
     const team = process.env.GITHUB_TEAM.toLowerCase();
     const amount = parseInt(process.env.AMOUNT);
     const excludeMembers = process.env.EXCLUDE_MEMBERS
