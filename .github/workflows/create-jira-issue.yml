@@ -100,7 +100,7 @@ jobs:
         with:
           org: doctor-power
           team_slug: ${{ inputs.github_team }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ORG_TEAM_MEMBERS }}
 
       - run: "echo ${{ steps.get-members.outputs.members }}"
         shell: bash
