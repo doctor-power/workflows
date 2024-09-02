@@ -57,12 +57,13 @@ async function run() {
           'Authorization': `token ${ORG_TEAM_MEMBERS}`
         },
       });
-      return response.json();
+      return response;//.json();
     }
 
     const members = await getMembers();
 
     console.log('members:', members);
+    console.log('DONE');
 
     // const getRedirectedUrl = async (url) => {
     //   const response = await fetch(url, {
