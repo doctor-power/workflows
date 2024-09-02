@@ -51,15 +51,21 @@ async function run() {
     // })
 
     const getMembers = async () => {
-      const response = await fetch(`https://api.github.com/orgs/${ghOrg}/teams/${team}/members`, {
-        method: 'HEAD',
+      const response = await fetch(`https://api.github.com/orgs/doctor-power/teams/development/members`, {
+        method: 'GET',
         headers: {
-          'Authorization': `token ${ORG_TEAM_MEMBERS}`
+          'Authorization': `Bearer ${ORG_TEAM_MEMBERS}`,
+          'Accept': 'application/vnd.github+json'
         },
         redirect: 'follow'
       });
-      return response;//.json();
-    }
+
+      if (!response.ok) {
+        throw new Error(`GitHub API request failed with status ${response.status}`);
+      }
+
+      return response.json();
+    };
 
     const members = await getMembers();
 
