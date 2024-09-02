@@ -41,14 +41,24 @@ async function run() {
     //   team_slug: team,
     // });
 
-    const members = await octokit.request(`GET /orgs/${ghOrg}/teams/${team}/members`, {
-      org: ghOrg,
-      team_slug: team,
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28',
-        'Authorization': `token ${ORG_TEAM_MEMBERS}`
-      }
-    })
+    // const members = await octokit.request(`GET /orgs/${ghOrg}/teams/${team}/members`, {
+    //   org: ghOrg,
+    //   team_slug: team,
+    //   headers: {
+    //     'X-GitHub-Api-Version': '2022-11-28',
+    //     'Authorization': `token ${ORG_TEAM_MEMBERS}`
+    //   }
+    // })
+
+    const members = async () => {
+      const response = await fetch(`https://api.github.com/orgs/${ghOrg}/teams/${team}/members`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `token ${ORG_TEAM_MEMBERS}`
+        },
+      });
+      return response.json();
+    }
 
     // const getRedirectedUrl = async (url) => {
     //   const response = await fetch(url, {
