@@ -54,10 +54,9 @@ async function run() {
       const response = await fetch(`https://api.github.com/orgs/doctor-power/teams/development/members`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${ORG_TEAM_MEMBERS}`,
+          'Authorization': `Bearer ${repoToken}`,
           'Accept': 'application/vnd.github+json'
-        },
-        redirect: 'follow'
+        }
       });
 
       if (!response.ok) {
@@ -68,20 +67,6 @@ async function run() {
     };
 
     const members = await getMembers();
-
-    console.log('members:', members);
-    console.log('DONE');
-
-    // const getRedirectedUrl = async (url) => {
-    //   const response = await fetch(url, {
-    //     method: 'HEAD',
-    //     headers: {
-    //       'Authorization': `token ${ORG_TEAM_MEMBERS}`
-    //     },
-    //     redirect: 'follow'
-    //   });
-    //   return response.url;
-    // };
 
     let memberNames = members.data.map((a) => a.login);
 
