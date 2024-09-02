@@ -6,12 +6,9 @@ import * as github from "@actions/github";
 async function run() {
   try {
     const repoToken = process.env.GITHUB_TOKEN;
-    const ORG_TEAM_MEMBERS = process.env.ORG_TEAM_MEMBERS;
-    const ADMIN_REPO_TOKEN = process.env.ADMIN_REPO_TOKEN;
-    const CLASSIC_WORKFLOW_TOKEN = process.env.CLASSIC_WORKFLOW_TOKEN;
-    const READ_ONLY_ORG_TEAM_MEMBERS = process.env.READ_ONLY_ORG_TEAM_MEMBERS;
     const team = process.env.GITHUB_TEAM.toLowerCase();
     const amount = parseInt(process.env.AMOUNT);
+    const allMembers = process.env.ALL_MEMBERS;
     const excludeMembers = process.env.EXCLUDE_MEMBERS
       ? process.env.EXCLUDE_MEMBERS.split(",")
       : [];
@@ -39,39 +36,7 @@ async function run() {
       return;
     }
 
-    // const members = await octokit.rest.teams.listMembersInOrg({
-    //   org: ghOrg,
-    //   team_slug: team,
-    // });
-
-    // const members = await octokit.request(`GET /orgs/${ghOrg}/teams/${team}/members`, {
-    //   org: ghOrg,
-    //   team_slug: team,
-    //   headers: {
-    //     'X-GitHub-Api-Version': '2022-11-28',
-    //     'Authorization': `token ${ORG_TEAM_MEMBERS}`
-    //   }
-    // })
-
-    const getMembers = async () => {
-      const response = await fetch(`https://api.github.com/orgs/doctor-power/teams/development/members`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${READ_ONLY_ORG_TEAM_MEMBERS}`,
-          'Accept': 'application/vnd.github+json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`GitHub API request failed with status ${response.status}`);
-      }
-
-      return response.json();
-    };
-
-    const members = await getMembers();
-
-    let memberNames = members.data.map((a) => a.login);
+    let memberNames = allMembers.split(",").map((name) => name.trim());
 
     // Exclude PR author and members from the exclude list
     memberNames = memberNames.filter(

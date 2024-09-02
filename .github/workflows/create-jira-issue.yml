@@ -86,15 +86,6 @@ jobs:
         run: npm install node-fetch dotenv @actions/core @actions/github
         working-directory: reusable
 
-      # - name: Assign GH team member as reviewer # Assign a random member of the specified GitHub Org team as reviewer
-      #   if: steps.skip.outcome == 'skipped'
-      #   run: node reusable/.github/workflows/assign-reviewer.mjs
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     GITHUB_TEAM: ${{ inputs.github_team }}
-      #     AMOUNT: 1
-      #     EXCLUDE_MEMBERS: ${{ inputs.dependabot_exclude_team_members }}
-
       - id: get-members
         uses: garnertb/get-team-members@v1
         with:
@@ -104,6 +95,30 @@ jobs:
 
       - run: "echo ${{ steps.get-members.outputs.members }}"
         shell: bash
+
+      # # Return the list of team members minus any excluded members
+      # - id: get_reviewers
+      #   run: |
+      #     members=(${{ steps.get-members.outputs.members }})
+      #     exclude=(${{ inputs.dependabot_exclude_team_members }})
+      #     reviewers=()
+      #     for member in "${members[@]}"; do
+      #       if [[ ! " ${exclude[@]} " =~ " ${member} " ]]; then
+      #         reviewers+=($member)
+      #       fi
+      #     done
+      #     echo "reviewers=${reviewers[@]}" >> $GITHUB_OUTPUT
+      #   shell: bash
+
+      - name: Assign GH team member as reviewer # Assign a random member of the specified GitHub Org team as reviewer
+        if: steps.skip.outcome == 'skipped'
+        run: node reusable/.github/workflows/assign-reviewer.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TEAM: ${{ inputs.github_team }}
+          AMOUNT: 1
+          ALL_MEMBERS: ${{ steps.get-members.outputs.members }}
+          EXCLUDE_MEMBERS: ${{ inputs.dependabot_exclude_team_members }}
 
       - name: Get PR reviewer # To be used to assign Jira issue to the same person
         if: steps.skip.outcome == 'skipped'
