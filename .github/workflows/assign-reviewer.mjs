@@ -62,7 +62,7 @@ async function run() {
 
     const members = await getMembers();
 
-    console.log(`members: ${members}`);
+    console.log('members:', members);
 
     // const getRedirectedUrl = async (url) => {
     //   const response = await fetch(url, {
