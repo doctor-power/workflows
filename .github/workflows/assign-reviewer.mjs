@@ -7,6 +7,9 @@ async function run() {
   try {
     const repoToken = process.env.GITHUB_TOKEN;
     const ORG_TEAM_MEMBERS = process.env.ORG_TEAM_MEMBERS;
+    const ADMIN_REPO_TOKEN = process.env.ADMIN_REPO_TOKEN;
+    const CLASSIC_WORKFLOW_TOKEN = process.env.CLASSIC_WORKFLOW_TOKEN;
+    const READ_ONLY_ORG_TEAM_MEMBERS = process.env.READ_ONLY_ORG_TEAM_MEMBERS;
     const team = process.env.GITHUB_TEAM.toLowerCase();
     const amount = parseInt(process.env.AMOUNT);
     const excludeMembers = process.env.EXCLUDE_MEMBERS
@@ -54,7 +57,7 @@ async function run() {
       const response = await fetch(`https://api.github.com/orgs/doctor-power/teams/development/members`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${repoToken}`,
+          'Authorization': `Bearer ${ADMIN_REPO_TOKEN}`,
           'Accept': 'application/vnd.github+json'
         }
       });
