@@ -60,6 +60,8 @@ async function run() {
       return response.json();
     }
 
+    console.log(`members: ${members}`);
+
     // const getRedirectedUrl = async (url) => {
     //   const response = await fetch(url, {
     //     method: 'HEAD',
