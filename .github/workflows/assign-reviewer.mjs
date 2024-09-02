@@ -52,7 +52,7 @@ async function run() {
 
     const getMembers = async () => {
       const response = await fetch(`https://api.github.com/orgs/${ghOrg}/teams/${team}/members`, {
-        method: 'GET',
+        method: 'HEAD',
         headers: {
           'Authorization': `token ${ORG_TEAM_MEMBERS}`
         },
