@@ -35,13 +35,30 @@ async function run() {
       return;
     }
 
-    // Get all members of the team
-    const membersResponse = await octokit.rest.teams.listMembersInOrg({
+    // const members = await octokit.rest.teams.listMembersInOrg({
+    //   org: ghOrg,
+    //   team_slug: team,
+    // });
+
+    const members = await octokit.request(`GET /orgs/${ghOrg}/teams/${team}/members`, {
       org: ghOrg,
       team_slug: team,
-    });
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Authorization': `token ${ORG_TEAM_MEMBERS}`
+      }
+    })
 
-    const members = membersResponse.data;
+    // const getRedirectedUrl = async (url) => {
+    //   const response = await fetch(url, {
+    //     method: 'HEAD',
+    //     headers: {
+    //       'Authorization': `token ${ORG_TEAM_MEMBERS}`
+    //     },
+    //     redirect: 'follow'
+    //   });
+    //   return response.url;
+    // };
 
     let memberNames = members.data.map((a) => a.login);
 
