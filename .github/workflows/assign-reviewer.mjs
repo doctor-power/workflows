@@ -57,7 +57,7 @@ async function run() {
       const response = await fetch(`https://api.github.com/orgs/doctor-power/teams/development/members`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${CLASSIC_WORKFLOW_TOKEN}`,
+          'Authorization': `Bearer ${READ_ONLY_ORG_TEAM_MEMBERS}`,
           'Accept': 'application/vnd.github+json'
         }
       });
