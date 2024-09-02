@@ -57,7 +57,7 @@ async function run() {
           'Authorization': `token ${ORG_TEAM_MEMBERS}`
         },
       });
-      return response;//.json();
+      return response.json();
     }
 
     const members = await getMembers();
