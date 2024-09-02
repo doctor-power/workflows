@@ -67,10 +67,6 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         run: echo "Release branch names ${{ steps.get_release_branch_names.outputs.release_branches }}"
 
-      # Prevent dependency conflicts
-      # - name: Delete current_repo
-      #   run: rm -rf current_repo
-
       - name: Checkout code from doctor-power/workflows repo
         uses: actions/checkout@v3
         with:
@@ -110,12 +106,12 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         id: get_reviewer
         run: | # Use the first reviewer request (PR not yet reviewed), or if none, the first review (PR already reviewed)
-          cd current_repo
           reviewer_username=$(gh pr view ${{ github.event.pull_request.number }} --json reviewRequests --jq '.reviewRequests[0].login')
           if [[ -z "$reviewer_username" ]]; then
             reviewer_username=$(gh pr view ${{ github.event.pull_request.number }} --json reviews --jq '.reviews[0].author.login')
           fi
           echo "reviewer=$reviewer_username" >> $GITHUB_OUTPUT
+        working-directory: current_repo
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
