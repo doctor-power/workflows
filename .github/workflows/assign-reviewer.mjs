@@ -56,6 +56,7 @@ async function run() {
         headers: {
           'Authorization': `token ${ORG_TEAM_MEMBERS}`
         },
+        redirect: 'follow'
       });
       return response;//.json();
     }
