@@ -177,6 +177,7 @@ jobs:
 
       - name: Run Release Version script
         run: node reusable/.github/workflows/release-version.mjs
+        continue-on-error: true # If this script fails, still run the next step
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
