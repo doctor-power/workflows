@@ -24,7 +24,7 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         uses: actions/checkout@v3
         with:
-          repository: doctor-power/workflows
+          repository: macuject/.github
           path: reusable
 
       - name: Setup Node.js
@@ -84,5 +84,35 @@ jobs:
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.run_script.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Re-run check-issue-key to verify the PR title is now valid
+      - name: Verify PR title
+        if: steps.skip.outcome == 'skipped'
+        id: verify_title_again
+        run: node reusable/.github/workflows/check-issue-key.mjs
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+          PROJECT_KEY: ${{ inputs.project }}
+          CURRENT_PR_TITLE: ${{ github.event.pull_request.title }}
+
+      # Add comment if PR title is valid
+      - name: Add Jira ticket comment
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.verify_title_again.outputs.pr_title_valid == 'true'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "Jira ticket: ${{ steps.verify_title_again.outputs.jira_issue_key }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Add comment if PR title is not valid
+      - name: Add invalid title comment
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.verify_title_again.outputs.pr_title_valid == 'false'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "@${{ github.event.pull_request.user.login }} please update the PR title manually to start with a valid Jira ticket number - the correct format looks like this: `WA-123: Brief description of changes`. Once you have edited the PR title, also check the Jira ticket to verify the PR has been linked correctly. In future, please use the required format for branch names, with a Jira ticket number at the start: `WA-123/my-feature-branch`. This will ensure the PR is automatically named correctly and linked to the correct Jira ticket."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
