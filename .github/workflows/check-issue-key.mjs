@@ -82,15 +82,15 @@ function cleanPRTitle(title) {
         // Extract first occurrence of any issue key
         const keyMatch = title.match(caseInsensitiveRegex);
         if (keyMatch) {
-            // Remove the found key from the title
-            cleanedTitle = title.replace(keyMatch[0], '').trim();
+            // Remove the found key and any following slash from the title
+            cleanedTitle = title.replace(new RegExp(`${keyMatch[0]}/?`), '').trim();
             // Remove common separators that might be left over
             cleanedTitle = cleanedTitle.replace(/^[/\\: ]/, '').trim();
         }
     }
 
     // Remove any remaining occurrences of the issue key, including variations with and without hyphen
-    const keyToRemove = new RegExp(`${PROJECT_KEY}[-\\s]?\\d+`, 'gi');
+    const keyToRemove = new RegExp(`${PROJECT_KEY}[-\\s]?\\d+/?`, 'gi');
     cleanedTitle = cleanedTitle.replace(keyToRemove, '').trim();
 
     // Format the title with the uppercase issue key, ensuring proper hyphen format
