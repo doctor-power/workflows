@@ -81,6 +81,7 @@ jobs:
         if: >-
           steps.skip.outcome == 'skipped' &&
           steps.run_script.outputs.pr_title_valid == 'false'
+        id: rename_pr
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
             --title "${{ steps.run_script.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"
@@ -89,32 +90,39 @@ jobs:
 
       # Re-run check-issue-key to verify the PR title is now valid
       - name: Checkout code from doctor-power/workflows repo
-        if: steps.skip.outcome == 'skipped'
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          (steps.rename_pr.outcome == 'success' || steps.run_script.outputs.pr_title_valid == 'true')
         uses: actions/checkout@v3
         with:
           repository: doctor-power/workflows
           path: reusable
 
       - name: Setup Node.js
-        if: steps.skip.outcome == 'skipped'
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          (steps.rename_pr.outcome == 'success' || steps.run_script.outputs.pr_title_valid == 'true')
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install dependencies
-        if: steps.skip.outcome == 'skipped'
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          (steps.rename_pr.outcome == 'success' || steps.run_script.outputs.pr_title_valid == 'true')
         run: npm install dotenv
         working-directory: reusable
 
       - name: Verify PR title
-        if: steps.skip.outcome == 'skipped'
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          (steps.rename_pr.outcome == 'success' || steps.run_script.outputs.pr_title_valid == 'true')
         id: verify_title_again
         run: node reusable/.github/workflows/check-issue-key.mjs
         env:
           BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
           PROJECT_KEY: ${{ inputs.project }}
           CURRENT_PR_TITLE: ${{ github.event.pull_request.title }}
-
 
       # Now we're working with the current repo again
       - name: Checkout code from current repo
@@ -141,6 +149,6 @@ jobs:
           steps.skip.outcome == 'skipped' &&
           steps.verify_title_again.outputs.pr_title_valid == 'false'
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "@${{ github.event.pull_request.user.login }} please update the PR title manually to start with a valid Jira ticket number - the correct format looks like this: `WA-123: Brief description of changes`. Once you have edited the PR title, also check the Jira ticket to verify the PR has been linked correctly. In future, please use the required format for branch names, with a Jira ticket number at the start: `WA-123/my-feature-branch`. This will ensure the PR is automatically named correctly and linked to the correct Jira ticket."
+          gh pr comment ${{ github.event.pull_request.number }} --body "@${{ github.event.pull_request.user.login }} please update the PR title manually to start with a valid Jira ticket number - the correct format looks like this: 'WA-123: Brief description of changes'. Once you have edited the PR title, also check the Jira ticket to verify the PR has been linked correctly. In future, please use the required format for branch names, with a Jira ticket number at the start: 'WA-123/my-feature-branch'. This will ensure the PR is automatically named correctly and linked to the correct Jira ticket."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
