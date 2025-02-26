@@ -116,10 +116,3 @@ jobs:
           gh pr comment ${{ github.event.pull_request.number }} --body "Jira ticket: ${{ steps.run_script.outputs.jira_issue_key }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update PR title if needed
-        if: steps.run_script.outputs.pr_title_valid == 'false' && steps.run_script.outputs.formatted_title != ''
-        run: |
-          gh pr edit ${{ github.event.pull_request.number }} --title "${{ steps.run_script.outputs.formatted_title }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

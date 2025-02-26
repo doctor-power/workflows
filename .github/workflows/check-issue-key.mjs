@@ -8,7 +8,7 @@ const IS_RELEASE_BRANCH = BRANCH_NAME.startsWith('release');
 
 /* Extract the issue keys from the branch name */
 let ISSUE_KEYS;
-const regex = new RegExp(`(${PROJECT_KEY}-\\d+)(\\+${PROJECT_KEY}-\\d+)*`, 'gi');
+const regex = new RegExp(`(${PROJECT_KEY}-\\d+)(\\+${PROJECT_KEY}-\\d+)*`, 'g');
 
 if (IS_RELEASE_BRANCH) {
     console.log("Release branch detected. Skipping check for issue key in branch name.");
@@ -38,10 +38,9 @@ if (IS_RELEASE_BRANCH) {
 const issueKeysInTitle = (CURRENT_PR_TITLE.match(regex) || []).flatMap(key => key.split('+'));
 
 if (issueKeysInTitle.length > 0) {
-    // Convert to uppercase for consistent comparison
-    const normalizedTitle = `${issueKeysInTitle.map(k => k.toUpperCase()).join('+')}:`;
-    if (!CURRENT_PR_TITLE.toUpperCase().startsWith(normalizedTitle)) {
-        console.log(`PR title does not start with issue key(s) followed by a colon. PR title: ${CURRENT_PR_TITLE}`);
+    if (!CURRENT_PR_TITLE.startsWith(`${issueKeysInTitle.join('+')}:`)) {
+        // if issueKeysInTitle is not followed by a colon in CURRENT_PR_TITLE, pr_title_valid = false
+        console.log(`PR title does not start with issue key(s) followed by a colon. PR title: ${CURRENT_PR_TITLE});]`);
         console.log(`::set-output name=pr_title_valid::false`);
     } else if (IS_RELEASE_BRANCH) {
         console.log(`Release branch detected, and PR title starts with issue key(s): [${issueKeysInTitle.join(', ')}]`);
