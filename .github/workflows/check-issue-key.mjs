@@ -39,9 +39,27 @@ const issueKeysInTitle = (CURRENT_PR_TITLE.match(regex) || []).flatMap(key => ke
 
 if (issueKeysInTitle.length > 0) {
     if (!CURRENT_PR_TITLE.startsWith(`${issueKeysInTitle.join('+')}:`)) {
-        // if issueKeysInTitle is not followed by a colon in CURRENT_PR_TITLE, pr_title_valid = false
-        console.log(`PR title does not start with issue key(s) followed by a colon. PR title: ${CURRENT_PR_TITLE});]`);
+        // Clean up the PR title by removing malformatted issue keys
+        let cleanTitle = CURRENT_PR_TITLE;
+        issueKeysInTitle.forEach(key => {
+            // Remove the key if it appears after any non-word character (like '/' or space)
+            // but preserve the separator
+            const keyRegex = new RegExp(`(?<=\\W)${key}`, 'gi');
+            cleanTitle = cleanTitle.replace(keyRegex, '');
+            // Remove the key if it appears at the start
+            const startKeyRegex = new RegExp(`^${key}`, 'gi');
+            cleanTitle = cleanTitle.replace(startKeyRegex, '');
+        });
+
+        // Clean up any orphaned separators (/, spaces) at the start
+        cleanTitle = cleanTitle.replace(/^[/\s]+/, '');
+
+        // Format the title properly
+        const formattedTitle = `${issueKeysInTitle.join('+')}: ${cleanTitle.trim()}`;
+        console.log(`PR title needs formatting. Original: "${CURRENT_PR_TITLE}"`);
+        console.log(`Formatted title: "${formattedTitle}"`);
         console.log(`::set-output name=pr_title_valid::false`);
+        console.log(`::set-output name=formatted_title::${formattedTitle}`);
     } else if (IS_RELEASE_BRANCH) {
         console.log(`Release branch detected, and PR title starts with issue key(s): [${issueKeysInTitle.join(', ')}]`);
         console.log(`::set-output name=pr_title_valid::true`);
