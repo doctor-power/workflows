@@ -128,7 +128,7 @@ jobs:
       - name: Checkout code from current repo
         if: >-
           steps.skip.outcome == 'skipped' &&
-          steps.run_script.outputs.pr_title_valid == 'false'
+          steps.verify_title_again.outcome != 'skipped'
         uses: actions/checkout@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
