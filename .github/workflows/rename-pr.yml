@@ -103,7 +103,7 @@ jobs:
         id: rename_pr
         run: |
           gh pr edit ${{ github.event.pull_request.number }} \
-            --title "${{ steps.run_script.outputs.jira_issue_key }}: ${{ github.event.pull_request.title }}"
+            --title "${{ steps.run_script.outputs.cleaned_pr_title }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

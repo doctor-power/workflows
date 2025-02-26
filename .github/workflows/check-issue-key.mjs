@@ -95,3 +95,6 @@ function cleanPRTitle(title) {
     const issueKey = title.match(regex)?.[0]?.toUpperCase() || title.match(caseInsensitiveRegex)?.[0]?.toUpperCase();
     return issueKey ? `${issueKey}: ${cleanedTitle}` : title;
 }
+
+const cleanedTitle = cleanPRTitle(CURRENT_PR_TITLE);
+console.log(`::set-output name=cleaned_pr_title::${cleanedTitle}`);
