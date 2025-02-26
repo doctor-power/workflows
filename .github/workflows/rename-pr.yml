@@ -47,6 +47,15 @@ jobs:
           PROJECT_KEY: ${{ inputs.project }}
           CURRENT_PR_TITLE: ${{ github.event.pull_request.title }}
 
+      # Checkout code from current repo
+      - name: Checkout code from current repo
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.run_script.outputs.pr_title_valid == 'false'
+        uses: actions/checkout@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Tag PR author in comment if we don't know the Jira ticket number
       - name: Add unknown Jira ticket comment
         if: >-
@@ -87,14 +96,6 @@ jobs:
           exit 1
 
       # If previous steps haven't exited with failure, & PR title doesn't start with Jira issue key, rename PR
-      - name: Checkout code from current repo
-        if: >-
-          steps.skip.outcome == 'skipped' &&
-          steps.run_script.outputs.pr_title_valid == 'false'
-        uses: actions/checkout@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Rename PR
         if: >-
           steps.skip.outcome == 'skipped' &&
