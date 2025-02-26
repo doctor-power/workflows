@@ -24,7 +24,7 @@ jobs:
         if: steps.skip.outcome == 'skipped'
         uses: actions/checkout@v3
         with:
-          repository: macuject/.github
+          repository: doctor-power/workflows
           path: reusable
 
       - name: Setup Node.js
