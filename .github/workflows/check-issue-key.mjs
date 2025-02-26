@@ -89,8 +89,8 @@ function cleanPRTitle(title) {
         }
     }
 
-    // Remove any remaining occurrences of the issue key
-    const keyToRemove = new RegExp(`${PROJECT_KEY}-?\\d+`, 'gi');
+    // Remove any remaining occurrences of the issue key, including variations with and without hyphen
+    const keyToRemove = new RegExp(`${PROJECT_KEY}[-\\s]?\\d+`, 'gi');
     cleanedTitle = cleanedTitle.replace(keyToRemove, '').trim();
 
     // Format the title with the uppercase issue key, ensuring proper hyphen format
