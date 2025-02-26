@@ -47,6 +47,16 @@ jobs:
           PROJECT_KEY: ${{ inputs.project }}
           CURRENT_PR_TITLE: ${{ github.event.pull_request.title }}
 
+      # Tag PR author in comment if we don't know the Jira ticket number
+      - name: Add unknown Jira ticket comment
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.run_script.outputs.jira_issue_key == ''
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "@${{ github.event.pull_request.user.login }} please update the PR title manually to start with a valid Jira ticket number - the correct format looks like this: 'WA-123: Brief description of changes'. Once you have edited the PR title, also check the Jira ticket to verify the PR has been linked correctly. In future, please use the required format for branch names, with a Jira ticket number at the start: 'WA-123/my-feature-branch'. This will ensure the PR is automatically named correctly and linked to the correct Jira ticket."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # If steps.run_script.outputs.jira_issue_key = '', exit with failure
       - name: Exit with failure if Jira issue key not found
         if: >-
@@ -58,6 +68,14 @@ jobs:
           echo "For example: WA-42/my-branch-name"
           echo "(*) Or, if this is a release branch, please manually add the issue key to the PR title."
           exit 1
+
+      # Tag PR author in comment if PR title starts with Jira issue key that doesn't match PR branch name
+      - name: Add PR author tag if PR title starts with Jira issue key that doesn't match PR branch name
+        if: >-
+          steps.skip.outcome == 'skipped' &&
+          steps.run_script.outputs.pr_title_starts_with_other_issue_key == 'true'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "@${{ github.event.pull_request.user.login }} the PR title starts with a Jira issue number that doesn't match the PR branch name. Please update the PR title manually to start with the correct Jira ticket number. Once you have edited the PR title, also check the Jira ticket to verify the PR has been linked correctly."
 
       # If steps.run_script.outputs.pr_title_starts_with_other_issue_key = 'true', exit with failure
       - name: Exit with failure if PR title starts with Jira issue key that doesn't match PR branch name
@@ -95,15 +113,5 @@ jobs:
           steps.run_script.outputs.jira_issue_key != ''
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body "Jira ticket: ${{ steps.run_script.outputs.jira_issue_key }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Add comment if we don't know the Jira ticket number
-      - name: Add invalid title comment
-        if: >-
-          steps.skip.outcome == 'skipped' &&
-          steps.run_script.outputs.jira_issue_key == ''
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "@${{ github.event.pull_request.user.login }} please update the PR title manually to start with a valid Jira ticket number - the correct format looks like this: 'WA-123: Brief description of changes'. Once you have edited the PR title, also check the Jira ticket to verify the PR has been linked correctly. In future, please use the required format for branch names, with a Jira ticket number at the start: 'WA-123/my-feature-branch'. This will ensure the PR is automatically named correctly and linked to the correct Jira ticket."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
