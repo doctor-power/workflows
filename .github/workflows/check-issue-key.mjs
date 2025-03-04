@@ -103,7 +103,7 @@ function cleanPRTitle(title) {
 
     if (issueKey) {
         // Ensure the issue key has a hyphen
-        issueKey = issueKey.replace(/([A-Z]+)(?!-)(\d+)/g, '$1-$2');
+        issueKey = issueKey.replace(/([A-Z]+)(?!-)(\d+)/, '$1-$2');
         return `${issueKey}: ${cleanedTitle}`;
     }
     return title;
