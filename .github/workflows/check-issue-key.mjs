@@ -95,9 +95,15 @@ function cleanPRTitle(title) {
 
     // Format the title with the uppercase issue key, ensuring proper hyphen format
     let issueKey = title.match(regex)?.[0]?.toUpperCase() || title.match(caseInsensitiveRegex)?.[0]?.toUpperCase();
+
+    // If no issue key found in the title but we have ISSUE_KEYS from the branch name, use those
+    if (!issueKey && ISSUE_KEYS && ISSUE_KEYS.length > 0) {
+        issueKey = ISSUE_KEYS.join('+').toUpperCase();
+    }
+
     if (issueKey) {
         // Ensure the issue key has a hyphen
-        issueKey = issueKey.replace(/([A-Z]+)(?!-)(\d+)/, '$1-$2');
+        issueKey = issueKey.replace(/([A-Z]+)(?!-)(\d+)/g, '$1-$2');
         return `${issueKey}: ${cleanedTitle}`;
     }
     return title;
